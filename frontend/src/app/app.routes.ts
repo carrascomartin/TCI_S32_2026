@@ -1,23 +1,18 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
-
 import { InicioHttpService } from './features/inicio/inicio.http.service';
 import { InicioService } from './features/inicio/inicio.service';
 import { MockInicioService } from './features/inicio/mock-inicio.service';
-
 import { MockRepuestosService } from './features/repuestos/mock-repuestos.service';
 import { RepuestosHttpService } from './features/repuestos/repuestos.http.service';
 import { RepuestosService } from './features/repuestos/repuestos.service';
-
 import { ReportarIncidenciaHttpService } from './features/reportar-incidencia/reportar-incidencia.http.service';
 import { MockReportarIncidenciaService } from './features/reportar-incidencia/mock-reportar-incidencia.service';
 import { ReportarIncidenciaService } from './features/reportar-incidencia/reportar-incidencia.service';
-
 import { RegistrarUsoHttpService } from './features/registrar-uso/registrar-uso.http.service';
 import { MockRegistrarUsoService } from './features/registrar-uso/mock-registrar-uso.service';
 import { RegistrarUsoService } from './features/registrar-uso/registrar-uso.service';
-
 import { ConsultaIncidenciasHttpService } from './features/consulta-incidencias/consulta-incidencias.http.service';
 import { MockConsultaIncidenciasService } from './features/consulta-incidencias/mock-consulta-incidencias.service';
 import { ConsultaIncidenciasService } from './features/consulta-incidencias/consulta-incidencias.service';
@@ -103,6 +98,23 @@ export const routes: Routes = [
         './features/reposicion-repuestos/reposicion-repuestos.page'
       ).then(
         (page) => page.ReposicionRepuestosPage,
+      ),
+  },
+
+  {
+    path: 'compras',
+    providers: [
+      {
+        provide: RepuestosService,
+        useFactory: () =>
+          environment.useMockData
+            ? inject(MockRepuestosService)
+            : inject(RepuestosHttpService),
+      },
+    ],
+    loadComponent: () =>
+      import('./features/compras/compras.page').then(
+        (page) => page.ComprasPage,
       ),
   },
 
