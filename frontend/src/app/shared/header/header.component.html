@@ -1,31 +1,47 @@
-<header class="header">
-  <div class="header-container">
-    <a class="brand" [routerLink]="config.brand.homeUrl" (click)="closeMenu()">
-      {{ config.brand.name }}
-    </a>
+@if (!esPantallaLogin()) {
+  <header class="header">
+    <div class="header-container">
+      <a class="brand" [routerLink]="config.brand.homeUrl" (click)="closeMenu()">
+        {{ config.brand.name }}
+      </a>
 
-    <button
-      class="menu-toggle"
-      type="button"
-      [attr.aria-expanded]="isMenuOpen()"
-      aria-label="Abrir o cerrar navegación"
-      (click)="toggleMenu()"
-    >
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+      @if (mostrarNavegacion()) {
+        <button
+          class="menu-toggle"
+          type="button"
+          [attr.aria-expanded]="isMenuOpen()"
+          aria-label="Abrir o cerrar navegación"
+          (click)="toggleMenu()"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
-    <nav class="nav" aria-label="Navegación del catálogo" [class.nav-open]="isMenuOpen()">
-      @for (item of config.navigation; track item.label) {
-        <a class="nav-link" [routerLink]="item.href" (click)="closeMenu()">
-          {{ item.label }}
-        </a>
+        <nav class="nav" aria-label="Navegación del catálogo" [class.nav-open]="isMenuOpen()">
+          @for (item of config.navigation; track item.label) {
+            <a class="nav-link" [routerLink]="item.href" (click)="closeMenu()">
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+
+        <div class="session-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+          @if (usuario(); as user) {
+            <span style="font-size: 0.8rem; color: var(--ui-text-muted);">
+              {{ user.nombre || user.correo }}
+            </span>
+          }
+
+          @if (esModoMock()) {
+            <span hlmBadge variant="outline">Demo</span>
+          }
+
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="cerrarSesion()">
+            Cerrar sesión
+          </button>
+        </div>
       }
-    </nav>
-
-    <a class="cta" [routerLink]="config.cta.href" (click)="closeMenu()">
-      {{ config.cta.label }}
-    </a>
-  </div>
-</header>
+    </div>
+  </header>
+}

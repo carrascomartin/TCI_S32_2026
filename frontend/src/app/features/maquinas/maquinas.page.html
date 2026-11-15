@@ -12,6 +12,43 @@
     <p role="note" class="text-sm text-muted-foreground">{{ config.demo }}</p>
   }
 
+  @if (puedeEditar()) {
+    <section hlmCard aria-labelledby="alta-maquinas">
+      <div hlmCardContent class="flex flex-col gap-4">
+        <h2 id="alta-maquinas" class="text-xl font-semibold">Agregar máquinas</h2>
+        @if (mensajeFormulario()) {
+          <p role="status">{{ mensajeFormulario() }}</p>
+        }
+        <form (ngSubmit)="crearTipo()" class="flex flex-wrap items-end gap-3">
+          <label>Nuevo tipo
+            <input hlmInput name="tipo" [(ngModel)]="tipoNuevo" required maxlength="100" />
+          </label>
+          <button hlmBtn type="submit" [disabled]="guardando() || !tipoNuevo.trim()">Crear tipo</button>
+        </form>
+        <form (ngSubmit)="crearMaquina()" class="flex flex-wrap items-end gap-3">
+          <label>Código
+            <input hlmInput name="codigo" [(ngModel)]="codigoNuevo" required maxlength="100" />
+          </label>
+          <label>Tipo
+            <select hlmInput name="tipoId" [(ngModel)]="idTipoNuevo" required>
+              <option [ngValue]="0">Seleccionar</option>
+              @for (tipo of tiposDisponibles(); track tipo.id) {
+                <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+              }
+            </select>
+          </label>
+          <label>Número de serie
+            <input hlmInput name="serie" [(ngModel)]="serieNueva" maxlength="100" />
+          </label>
+          <label>Fecha de instalación
+            <input hlmInput type="datetime-local" name="fecha" [(ngModel)]="fechaNueva" />
+          </label>
+          <button hlmBtn type="submit" [disabled]="guardando() || !codigoNuevo.trim() || !idTipoNuevo">Crear máquina</button>
+        </form>
+      </div>
+    </section>
+  }
+
   <section hlmCard>
     <div hlmCardContent class="flex flex-col gap-4">
       <div class="grid gap-3 md:grid-cols-3">

@@ -1,23 +1,35 @@
 import { TestBed } from '@angular/core/testing';
-import { App } from './app';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
-describe('App', () => {
+import { App } from './app';
+import { AuthService } from './features/auth/auth.service';
+
+describe('Aplicación', () => {
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: {
+            login: () => of({ access_token: 'token', token_type: 'bearer', expires_in: 60 }),
+            obtenerPerfil: () => of({ id: 1, correo: 'demo@example.invalid', nombre: 'Demo', roles: [] }),
+          },
+        },
+      ],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('crea la aplicación y muestra el pie del sistema', async () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, ng-21-app-template');
+    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('TCI');
   });
 });

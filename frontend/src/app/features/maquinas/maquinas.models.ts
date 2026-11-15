@@ -10,6 +10,18 @@ export interface TipoMaquinaResumenDto {
   nombre: string;
 }
 
+export interface TipoMaquinaDto extends TipoMaquinaResumenDto {
+  descripcion: string | null;
+  activo: boolean;
+}
+
+export interface DatosMaquina {
+  codigo: string;
+  tipo_maquina_id: number;
+  numero_serie?: string | null;
+  fecha_instalacion?: string | null;
+}
+
 export interface MaquinaDto {
   id: number;
   codigo: string;

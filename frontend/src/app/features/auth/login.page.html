@@ -1,0 +1,77 @@
+<section class="login-wrapper" aria-labelledby="login-title">
+  <div hlmCard class="login-card">
+    <div hlmCardHeader class="login-header">
+      <div class="login-brand-row">
+        <span class="eyebrow">{{ config.eyebrow }}</span>
+        @if (esModoMock()) {
+          <span hlmBadge variant="outline">Modo Demo</span>
+        }
+      </div>
+      <h1 hlmCardTitle id="login-title">{{ config.title }}</h1>
+      <p hlmCardDescription>{{ config.subtitle }}</p>
+    </div>
+
+    <div hlmCardContent class="login-content">
+      @if (errorMensaje(); as mensaje) {
+        <div class="error-banner" role="alert" aria-live="assertive">
+          <span>{{ mensaje }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+        <div class="field-group">
+          <label hlmLabel for="login-email">{{ config.fields.email.label }}</label>
+          <input
+            hlmInput
+            id="login-email"
+            type="email"
+            autocomplete="username"
+            [placeholder]="config.fields.email.placeholder"
+            formControlName="correo"
+            [attr.aria-invalid]="correoInvalido"
+          />
+          @if (correoInvalido) {
+            <span class="field-error">
+              @if (form.controls.correo.hasError('required')) {
+                {{ config.fields.email.requiredError }}
+              } @else {
+                {{ config.fields.email.invalidError }}
+              }
+            </span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label hlmLabel for="login-password">{{ config.fields.password.label }}</label>
+          <input
+            hlmInput
+            id="login-password"
+            type="password"
+            autocomplete="current-password"
+            [placeholder]="config.fields.password.placeholder"
+            formControlName="password"
+            [attr.aria-invalid]="passwordInvalida"
+          />
+          @if (passwordInvalida) {
+            <span class="field-error">{{ config.fields.password.requiredError }}</span>
+          }
+        </div>
+
+        <button
+          hlmBtn
+          type="submit"
+          class="submit-btn"
+          [disabled]="enviando()"
+        >
+          {{ enviando() ? config.actions.submitting : config.actions.submit }}
+        </button>
+      </form>
+    </div>
+
+    @if (esModoMock()) {
+      <div hlmCardFooter class="login-footer">
+        <p>{{ config.mockNotice }}</p>
+      </div>
+    }
+  </div>
+</section>

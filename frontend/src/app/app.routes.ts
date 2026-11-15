@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
+import { authGuard } from './core/auth/auth.guard';
 import { InicioHttpService } from './features/inicio/inicio.http.service';
 import { InicioService } from './features/inicio/inicio.service';
 import { MockInicioService } from './features/inicio/mock-inicio.service';
@@ -25,213 +26,237 @@ import { MaquinasService } from './features/maquinas/maquinas.service';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    title: 'Iniciar sesión · TCI',
+    loadComponent: () => import('./features/auth/login.page').then((page) => page.LoginPage),
+  },
+
+  {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'inicio',
-  },
-
-  {
-    path: 'ui-preview',
-    title: 'Componentes visuales · TCI',
-    loadComponent: () =>
-      import('./features/ui-preview/ui-preview.page').then((page) => page.UiPreviewPage),
-  },
-
-  {
-    path: 'inicio',
-    title: 'Inicio · TCI',
-    providers: [
-      {
-        provide: InicioService,
-        useFactory: () =>
-          environment.useMockData ? inject(MockInicioService) : inject(InicioHttpService),
-      },
-    ],
-    loadComponent: () => import('./features/inicio/inicio.page').then((page) => page.InicioPage),
-  },
-
-  {
-    path: 'stock',
-    providers: [
-      {
-        provide: RepuestosService,
-        useFactory: () =>
-          environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
-      },
-    ],
+    canActivate: [authGuard],
     children: [
       {
         path: '',
-        title: 'Repuestos · TCI',
-        loadComponent: () =>
-          import('./features/repuestos/repuestos.page').then((page) => page.RepuestosPage),
+        pathMatch: 'full',
+        redirectTo: 'inicio',
       },
+
       {
-        path: ':id',
-        title: 'Detalle de repuesto · TCI',
+        path: 'ui-preview',
+        title: 'Componentes visuales · TCI',
         loadComponent: () =>
-          import('./features/repuestos/repuesto-detalle.page').then(
-            (page) => page.RepuestoDetallePage,
+          import('./features/ui-preview/ui-preview.page').then((page) => page.UiPreviewPage),
+      },
+
+      {
+        path: 'inicio',
+        title: 'Inicio · TCI',
+        providers: [
+          {
+            provide: InicioService,
+            useFactory: () =>
+              environment.useMockData ? inject(MockInicioService) : inject(InicioHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/inicio/inicio.page').then((page) => page.InicioPage),
+      },
+
+      {
+        path: 'stock',
+        providers: [
+          {
+            provide: RepuestosService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRepuestosService)
+                : inject(RepuestosHttpService),
+          },
+        ],
+        children: [
+          {
+            path: '',
+            title: 'Repuestos · TCI',
+            loadComponent: () =>
+              import('./features/repuestos/repuestos.page').then((page) => page.RepuestosPage),
+          },
+          {
+            path: ':id',
+            title: 'Detalle de repuesto · TCI',
+            loadComponent: () =>
+              import('./features/repuestos/repuesto-detalle.page').then(
+                (page) => page.RepuestoDetallePage,
+              ),
+          },
+        ],
+      },
+
+      {
+        path: 'reposicion',
+        providers: [
+          {
+            provide: RepuestosService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRepuestosService)
+                : inject(RepuestosHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/reposicion-repuestos/reposicion-repuestos.page').then(
+            (page) => page.ReposicionRepuestosPage,
           ),
       },
-    ],
-  },
 
-  {
-    path: 'reposicion',
-    providers: [
       {
-        provide: RepuestosService,
-        useFactory: () =>
-          environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
-      },
-    ],
-    loadComponent: () =>
-      import('./features/reposicion-repuestos/reposicion-repuestos.page').then(
-        (page) => page.ReposicionRepuestosPage,
-      ),
-  },
-
-  {
-    path: 'compras',
-    providers: [
-      {
-        provide: RepuestosService,
-        useFactory: () =>
-          environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
-      },
-    ],
-    loadComponent: () => import('./features/compras/compras.page').then((page) => page.ComprasPage),
-  },
-
-  {
-    path: 'pedidos-compra',
-    providers: [
-      {
-        provide: PedidosCompraService,
-        useFactory: () =>
-          environment.useMockData
-            ? inject(MockPedidosCompraService)
-            : inject(PedidosCompraHttpService),
-      },
-    ],
-    children: [
-      {
-        path: '',
-        title: 'Pedidos de compra · TCI',
+        path: 'compras',
+        providers: [
+          {
+            provide: RepuestosService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRepuestosService)
+                : inject(RepuestosHttpService),
+          },
+        ],
         loadComponent: () =>
-          import('./features/pedidos-compra/pedidos-compra.page').then(
-            (page) => page.PedidosCompraPage,
+          import('./features/compras/compras.page').then((page) => page.ComprasPage),
+      },
+
+      {
+        path: 'pedidos-compra',
+        providers: [
+          {
+            provide: PedidosCompraService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockPedidosCompraService)
+                : inject(PedidosCompraHttpService),
+          },
+        ],
+        children: [
+          {
+            path: '',
+            title: 'Pedidos de compra · TCI',
+            loadComponent: () =>
+              import('./features/pedidos-compra/pedidos-compra.page').then(
+                (page) => page.PedidosCompraPage,
+              ),
+          },
+          {
+            path: ':id',
+            title: 'Detalle de pedido · TCI',
+            loadComponent: () =>
+              import('./features/pedidos-compra/pedido-compra-detalle.page').then(
+                (page) => page.PedidoCompraDetallePage,
+              ),
+          },
+          {
+            path: ':id/recepcion',
+            title: 'Registrar recepción · TCI',
+            loadComponent: () =>
+              import('./features/pedidos-compra/recepcion-compra.page').then(
+                (page) => page.RecepcionCompraPage,
+              ),
+          },
+        ],
+      },
+
+      // Va antes que 'incidencias': si no, 'nueva' se toma como el :id del detalle.
+      {
+        path: 'incidencias/nueva',
+        title: 'Reportar incidencia · TCI',
+        providers: [
+          {
+            provide: ReportarIncidenciaService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockReportarIncidenciaService)
+                : inject(ReportarIncidenciaHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/reportar-incidencia/reportar-incidencia.page').then(
+            (page) => page.ReportarIncidenciaPage,
           ),
       },
-      {
-        path: ':id',
-        title: 'Detalle de pedido · TCI',
-        loadComponent: () =>
-          import('./features/pedidos-compra/pedido-compra-detalle.page').then(
-            (page) => page.PedidoCompraDetallePage,
-          ),
-      },
-      {
-        path: ':id/recepcion',
-        title: 'Registrar recepción · TCI',
-        loadComponent: () =>
-          import('./features/pedidos-compra/recepcion-compra.page').then(
-            (page) => page.RecepcionCompraPage,
-          ),
-      },
-    ],
-  },
 
-  // Va antes que 'incidencias': si no, 'nueva' se toma como el :id del detalle.
-  {
-    path: 'incidencias/nueva',
-    title: 'Reportar incidencia · TCI',
-    providers: [
       {
-        provide: ReportarIncidenciaService,
-        useFactory: () =>
-          environment.useMockData
-            ? inject(MockReportarIncidenciaService)
-            : inject(ReportarIncidenciaHttpService),
+        path: 'incidencias',
+        providers: [
+          {
+            provide: ConsultaIncidenciasService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockConsultaIncidenciasService)
+                : inject(ConsultaIncidenciasHttpService),
+          },
+        ],
+        children: [
+          {
+            path: '',
+            title: 'Consulta de incidencias · TCI',
+            loadComponent: () =>
+              import('./features/consulta-incidencias/consulta-incidencias.page').then(
+                (page) => page.ConsultaIncidenciasPage,
+              ),
+          },
+          {
+            path: ':id',
+            title: 'Detalle de incidencia · TCI',
+            loadComponent: () =>
+              import('./features/consulta-incidencias/incidencia-detalle.page').then(
+                (page) => page.IncidenciaDetallePage,
+              ),
+          },
+        ],
       },
-    ],
-    loadComponent: () =>
-      import('./features/reportar-incidencia/reportar-incidencia.page').then(
-        (page) => page.ReportarIncidenciaPage,
-      ),
-  },
 
-  {
-    path: 'incidencias',
-    providers: [
       {
-        provide: ConsultaIncidenciasService,
-        useFactory: () =>
-          environment.useMockData
-            ? inject(MockConsultaIncidenciasService)
-            : inject(ConsultaIncidenciasHttpService),
-      },
-    ],
-    children: [
-      {
-        path: '',
-        title: 'Consulta de incidencias · TCI',
+        path: 'usos/nuevo',
+        title: 'Registrar uso de repuesto · TCI',
+        providers: [
+          {
+            provide: RegistrarUsoService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRegistrarUsoService)
+                : inject(RegistrarUsoHttpService),
+          },
+        ],
         loadComponent: () =>
-          import('./features/consulta-incidencias/consulta-incidencias.page').then(
-            (page) => page.ConsultaIncidenciasPage,
+          import('./features/registrar-uso/registrar-uso.page').then(
+            (page) => page.RegistrarUsoPage,
           ),
       },
-      {
-        path: ':id',
-        title: 'Detalle de incidencia · TCI',
-        loadComponent: () =>
-          import('./features/consulta-incidencias/incidencia-detalle.page').then(
-            (page) => page.IncidenciaDetallePage,
-          ),
-      },
-    ],
-  },
 
-  {
-    path: 'usos/nuevo',
-    title: 'Registrar uso de repuesto · TCI',
-    providers: [
       {
-        provide: RegistrarUsoService,
-        useFactory: () =>
-          environment.useMockData
-            ? inject(MockRegistrarUsoService)
-            : inject(RegistrarUsoHttpService),
-      },
-    ],
-    loadComponent: () =>
-      import('./features/registrar-uso/registrar-uso.page').then((page) => page.RegistrarUsoPage),
-  },
-
-  {
-    path: 'maquinas',
-    providers: [
-      {
-        provide: MaquinasService,
-        useFactory: () =>
-          environment.useMockData ? inject(MockMaquinasService) : inject(MaquinasHttpService),
-      },
-    ],
-    children: [
-      {
-        path: '',
-        title: 'Máquinas · TCI',
-        loadComponent: () =>
-          import('./features/maquinas/maquinas.page').then((page) => page.MaquinasPage),
-      },
-      {
-        path: ':id',
-        title: 'Detalle de máquina · TCI',
-        loadComponent: () =>
-          import('./features/maquinas/maquina-detalle.page').then(
-            (page) => page.MaquinaDetallePage,
-          ),
+        path: 'maquinas',
+        providers: [
+          {
+            provide: MaquinasService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockMaquinasService)
+                : inject(MaquinasHttpService),
+          },
+        ],
+        children: [
+          {
+            path: '',
+            title: 'Máquinas · TCI',
+            loadComponent: () =>
+              import('./features/maquinas/maquinas.page').then((page) => page.MaquinasPage),
+          },
+          {
+            path: ':id',
+            title: 'Detalle de máquina · TCI',
+            loadComponent: () =>
+              import('./features/maquinas/maquina-detalle.page').then(
+                (page) => page.MaquinaDetallePage,
+              ),
+          },
+        ],
       },
     ],
   },
