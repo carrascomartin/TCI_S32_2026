@@ -41,20 +41,25 @@ class AutenticacionJWTMiddleware(BaseHTTPMiddleware):
         autorizacion = request.headers.get("Authorization", "")
         esquema, separador, token = autorizacion.partition(" ")
         if not separador or esquema.lower() != "bearer" or not token.strip():
-            return self._no_autorizado()
+            return self._no_autorizado(request)
 
         try:
             claims = validar_token_jwt(self.configuracion, token.strip())
             request.state.usuario_id = int(claims["sub"])
         except (TokenInvalidoError, KeyError, TypeError, ValueError):
-            return self._no_autorizado()
+            return self._no_autorizado(request)
 
         return await call_next(request)
 
     @staticmethod
-    def _no_autorizado() -> JSONResponse:
+    def _no_autorizado(request: Request) -> JSONResponse:
+        mensaje = "Se requiere un token Bearer válido."
         return JSONResponse(
             status_code=401,
-            content={"detail": "Se requiere un token Bearer válido."},
+            content=(
+                {"codigo": "no_autorizado", "mensaje": mensaje}
+                if request.url.path.startswith("/api/v0/")
+                else {"detail": mensaje}
+            ),
             headers={"WWW-Authenticate": "Bearer"},
         )
