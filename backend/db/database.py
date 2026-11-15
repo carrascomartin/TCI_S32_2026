@@ -1,8 +1,9 @@
 from __future__ import annotations
 from collections.abc import AsyncGenerator
 from utils import get_config, get_logger
-from .db_models import Base
-from sqlalchemy import inspect, text
+from . import db_models
+from sqlmodel import SQLModel
+from sqlalchemy import event, inspect, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -28,16 +29,26 @@ def _build_engine() -> AsyncEngine:
             from pathlib import Path
             Path(db_name).parent.mkdir(parents=True, exist_ok=True)
     try:
-        return create_async_engine(
+        engine = create_async_engine(
             url,
             pool_pre_ping=True,
             connect_args=connect_args,
             echo=False,
             future=True,
         )
+        if engine.dialect.name == "sqlite":
+            event.listen(engine.sync_engine, "connect", _activar_claves_foraneas)
+        return engine
     except Exception as e:
-        logger.critical(f"Cannot create async engine url='{url}': {e}")
-        exit(2)
+        raise RuntimeError("Cannot create database engine") from e
+
+
+def _activar_claves_foraneas(connection, _record) -> None:
+    cursor = connection.cursor()
+    try:
+        cursor.execute("PRAGMA foreign_keys=ON")
+    finally:
+        cursor.close()
 
 
 def get_engine() -> AsyncEngine:
@@ -64,8 +75,8 @@ async def init_db() -> None:
     """Crea todas las tablas definidas en Base. Llamar desde lifespan."""
     async with get_engine().begin() as conn:
         await conn.run_sync(_renombrar_tablas_autenticacion)
-        await conn.run_sync(Base.metadata.create_all)
-    logger.debug(f"Tables: {list(Base.metadata.tables.keys())}")
+        await conn.run_sync(SQLModel.metadata.create_all)
+    logger.debug(f"Tables: {list(SQLModel.metadata.tables.keys())}")
 
 
 def _renombrar_tablas_autenticacion(connection: Connection) -> None:
@@ -100,6 +111,25 @@ def _renombrar_tablas_autenticacion(connection: Connection) -> None:
         )
         tablas.remove(nombre_anterior)
         tablas.add(nombre_nuevo)
+
+    renombres = {
+        "usuarios": {"name": "nombre", "lastname": "apellido", "gender": "genero",
+                     "email": "correo", "hashed_password": "hash_contrasena",
+                     "verified": "verificado"},
+        "roles": {"rolename": "nombre", "description": "descripcion"},
+        "usuarios_x_roles": {"user_id": "usuario_id", "role_id": "rol_id"},
+    }
+    for tabla, columnas in renombres.items():
+        if tabla not in tablas:
+            continue
+        existentes = {columna["name"] for columna in inspect(connection).get_columns(tabla)}
+        for anterior, nuevo in columnas.items():
+            if anterior in existentes and nuevo in existentes:
+                raise RuntimeError(f"Columnas duplicadas en {tabla}: {anterior} y {nuevo}")
+            if anterior in existentes:
+                connection.exec_driver_sql(
+                    f'ALTER TABLE "{tabla}" RENAME COLUMN "{anterior}" TO "{nuevo}"'
+                )
 
 
 async def dispose_db() -> None:

@@ -19,7 +19,7 @@
     DB_PASSWORD = "..."
     DB_HOST = "localhost"
     DB_PORT = 5432
-    DB_NAME = "db.sqlite3"
+    DB_NAME = "data/db.sqlite3"
 
 [logs]
     LOGS_LEVEL = 10
