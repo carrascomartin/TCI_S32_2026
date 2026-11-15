@@ -308,3 +308,30 @@ git commit -m "🐛 Fix de button guardar en pantalla de inicio ticket_1203"
 |---|---|
 | `main` | Estado estable y productivo del proyecto |
 | `feature/<nombre>` | Desarrollo de una funcionalidad o característica |
+
+## Usuarios de demostración
+
+Con el backend iniciado en Docker, ejecutar desde la raíz:
+
+```bash
+docker compose exec backend uv run --no-dev gestionar_acceso.py preparar-demo
+```
+
+El comando solicita una contraseña por usuario, sin mostrarla. Crea los roles
+`operario_maquina`, `empleado_mantenimiento`, `encargado_mantenimiento` y
+`gerencia_administracion` y las cuentas `operario@demo.invalid`,
+`empleado@demo.invalid`, `encargado@demo.invalid` y
+`gerencia@demo.invalid`. Al repetirlo conserva las cuentas y contraseñas
+existentes. Si una cuenta existente no tiene el rol esperado, finaliza con
+error para que se revise su asignación.
+
+Para iniciar sesión, habilitar JWT y configurar una clave en la configuración
+local del backend antes de iniciar Docker. La configuración de ejemplo deja
+JWT deshabilitado. Enviar correo y contraseña a `POST /auth/token` y usar el
+token obtenido para consultar `GET /auth/me`.
+
+Para crear un usuario individual:
+
+```bash
+docker compose exec backend uv run --no-dev gestionar_acceso.py crear-usuario --rol operario_maquina
+```
