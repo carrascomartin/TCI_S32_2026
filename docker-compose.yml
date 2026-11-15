@@ -3,6 +3,8 @@ services:
     build: ./backend
     ports:
       - "8300:8300"
+    volumes:
+      - backend-data:/app/data
 
   frontend:
     build: ./frontend
@@ -10,3 +12,6 @@ services:
       - "8080:80"
     depends_on:
       - backend
+
+volumes:
+  backend-data:
