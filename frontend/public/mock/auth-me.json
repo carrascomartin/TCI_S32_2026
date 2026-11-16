@@ -1,0 +1,7 @@
+{
+  "usuario_id": 1,
+  "correo": "demo@tci.local",
+  "nombre": "Usuario",
+  "apellido": "Demostración",
+  "roles": ["encargado_mantenimiento"]
+}
