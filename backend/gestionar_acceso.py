@@ -6,15 +6,24 @@ import asyncio
 from collections.abc import Awaitable, Callable
 
 import typer
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from db.database import dispose_db, get_sessionmaker, init_db
 from models.autenticacion_mdl import RolCrearDto, UsuarioCrearDto
+from db.db_models.rol_db import RolDb
 from services.autenticacion_service import ServicioAutenticacion
 from utils import load_config
 
 
 aplicacion = typer.Typer(help="Aprovisiona usuarios y roles del backend.")
+
+USUARIOS_DEMO = (
+    ("operario_maquina", "Operario", "operario@demo.invalid"),
+    ("empleado_mantenimiento", "Empleado", "empleado@demo.invalid"),
+    ("encargado_mantenimiento", "Encargado", "encargado@demo.invalid"),
+    ("gerencia_administracion", "Gerencia", "gerencia@demo.invalid"),
+)
 
 
 async def _ejecutar(
@@ -35,6 +44,46 @@ async def _ejecutar(
 def _mostrar_error(error: Exception) -> None:
     typer.secho(str(error), fg=typer.colors.RED, err=True)
     raise typer.Exit(code=1)
+
+
+@aplicacion.command("preparar-demo")
+def preparar_demo(
+    configuracion: str = typer.Option("default", "--config", help="Entorno TOML."),
+) -> None:
+    """Create missing demo users and roles without changing existing users."""
+
+    async def operacion(servicio: ServicioAutenticacion) -> str:
+        for nombre_rol, nombre, correo in USUARIOS_DEMO:
+            resultado = await servicio.sesion.execute(
+                select(RolDb).where(RolDb.nombre == nombre_rol)
+            )
+            if resultado.scalar_one_or_none() is None:
+                await servicio.crear_rol(RolCrearDto(nombre=nombre_rol))
+            usuario = await servicio.buscar_usuario_por_correo(correo)
+            if usuario is not None:
+                if nombre_rol not in {rol.nombre for rol in usuario.roles}:
+                    raise ValueError(
+                        f"El usuario {correo} ya existe sin el rol esperado; "
+                        "revisar su asignación antes de continuar."
+                    )
+                continue
+            contrasena = typer.prompt(
+                f"Contraseña para {correo}", hide_input=True, confirmation_prompt=True
+            )
+            await servicio.crear_usuario(UsuarioCrearDto(
+                nombre=nombre,
+                apellido="Demo",
+                genero="X",
+                correo=correo,
+                contrasena=contrasena,
+                roles=[nombre_rol],
+            ))
+        return "Usuarios y roles de demostración preparados."
+
+    try:
+        typer.echo(asyncio.run(_ejecutar(configuracion, operacion)))
+    except Exception as error:
+        _mostrar_error(error)
 
 
 @aplicacion.command("crear-rol")

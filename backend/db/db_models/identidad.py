@@ -1,5 +1,12 @@
 from sqlalchemy import Index, text
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+
+class UsuarioXRolDb(SQLModel, table=True):
+    __tablename__ = "usuarios_x_roles"
+    __table_args__ = (Index("ix_usuarios_x_roles_rol_id", "rol_id"),)
+    usuario_id: int = Field(primary_key=True, foreign_key="usuarios.id")
+    rol_id: int = Field(primary_key=True, foreign_key="roles.id")
 
 
 class UsuarioDb(SQLModel, table=True):
@@ -12,6 +19,7 @@ class UsuarioDb(SQLModel, table=True):
     correo: str = Field(unique=True, max_length=255)
     hash_contrasena: str = Field(max_length=255)
     verificado: bool = Field(default=False, sa_column_kwargs={"server_default": text("false")})
+    roles: list["RolDb"] = Relationship(back_populates="usuarios", link_model=UsuarioXRolDb, sa_relationship_kwargs={"lazy": "selectin"})
 
 
 class RolDb(SQLModel, table=True):
@@ -20,13 +28,4 @@ class RolDb(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     nombre: str = Field(unique=True, max_length=100)
     descripcion: str | None = Field(default=None, max_length=255)
-
-
-class UsuarioXRolDb(SQLModel, table=True):
-    __tablename__ = "usuarios_x_roles"
-    __table_args__ = (
-        Index("ix_usuarios_x_roles_rol_id", "rol_id"),
-    )
-
-    usuario_id: int = Field(primary_key=True, foreign_key="usuarios.id")
-    rol_id: int = Field(primary_key=True, foreign_key="roles.id")
+    usuarios: list[UsuarioDb] = Relationship(back_populates="roles", link_model=UsuarioXRolDb, sa_relationship_kwargs={"lazy": "selectin"})

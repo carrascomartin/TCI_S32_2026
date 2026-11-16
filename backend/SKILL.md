@@ -15,7 +15,7 @@ description: >
 
 ## Stack
 
-- **FastAPI** + **SQLAlchemy async** (`AsyncSession`, `create_async_engine`)
+- **FastAPI** + **SQLModel** para las tablas y **SQLAlchemy async** para sesiones y engine (`AsyncSession`, `create_async_engine`).
 - **SQLite** en dev/local (`sqlite+aiosqlite:///`), **Postgres** en prod (`postgresql+asyncpg://`)
 - Driver configurado via `.toml` — cambiar `DB_TYPE` y `DB_DRIVER` es suficiente para rotar de motor
 - **Sin Docker en dev**. Todo corre local.
@@ -84,6 +84,23 @@ El engine (`get_engine()`) y el sessionmaker (`get_sessionmaker()`) son lazy sin
 ---
 
 ## ORM Models — Aggregate Root
+
+## Acceso a datos
+
+Para nuevas funcionalidades, separar el acceso a datos en un repository
+asíncrono que reciba la sesión SQLAlchemy y realice las consultas. El service
+coordina las reglas del dominio y utiliza el repository; el router valida el
+contrato HTTP y delega en el service. El ciclo de vida y las transacciones de
+la sesión se coordinan desde la dependencia de sesión.
+
+Los modelos persistidos heredan de `SQLModel` con `table=True` y se
+registran desde `db/db_models/__init__.py`. La inicialización usa
+`SQLModel.metadata.create_all`. Mantener `db/main.dbml` alineado con
+las tablas, claves y restricciones. Usar nombres en español para tablas y
+columnas y la convención `tabla_a_x_tabla_b` para tablas puente.
+
+El ejemplo declarativo siguiente ilustra las relaciones y se debe adaptar a
+SQLModel al crear modelos.
 
 **Un service por aggregate root, no por tabla.**  
 Si una entidad nunca existe de forma independiente (ej: `Address` siempre pertenece a `Client`), no necesita service propio. Se accede via relationship desde el root.
