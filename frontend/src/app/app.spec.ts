@@ -18,7 +18,7 @@ describe('Aplicación', () => {
           provide: AuthService,
           useValue: {
             login: () => of({ access_token: 'token', token_type: 'bearer', expires_in: 60 }),
-            obtenerPerfil: () => of({ id: 1, correo: 'demo@example.invalid', nombre: 'Demo', roles: [] }),
+            obtenerPerfil: () => of({ usuario_id: 1, correo: 'demo@example.invalid', nombre: 'Demo', roles: [] }),
           },
         },
       ],

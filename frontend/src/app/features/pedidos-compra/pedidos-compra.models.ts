@@ -48,6 +48,14 @@ export interface ItemRecepcionCompraCreateDto {
   cantidad: number;
 }
 
+export interface AprobarPedidoCompraDto {
+  observaciones?: string | null;
+}
+
+export interface CancelarPedidoCompraDto {
+  motivo: string;
+}
+
 export interface RecepcionCompraCreateDto {
   delegada_a_usuario_id?: number | null;
   notas?: string | null;

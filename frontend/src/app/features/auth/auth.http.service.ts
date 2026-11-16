@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TokenRespuesta, UsuarioPerfil } from './auth.models';
 import { AuthService } from './auth.service';
@@ -26,8 +26,6 @@ export class AuthHttpService extends AuthService {
   }
 
   override obtenerPerfil(): Observable<UsuarioPerfil> {
-    return this.http.get<UsuarioPerfil & { usuario_id: number }>(`${this.baseUrl}/auth/me`).pipe(
-      map((perfil) => ({ ...perfil, id: perfil.usuario_id })),
-    );
+    return this.http.get<UsuarioPerfil>(`${this.baseUrl}/auth/me`);
   }
 }

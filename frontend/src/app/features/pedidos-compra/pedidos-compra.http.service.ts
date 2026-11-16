@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  AprobarPedidoCompraDto,
+  CancelarPedidoCompraDto,
   Pagina,
   PedidoCompraDto,
   RecepcionCompraCreateDto,
@@ -29,6 +31,14 @@ export class PedidosCompraHttpService extends PedidosCompraService {
     return this.http
       .get<Pagina<UbicacionDto>>(this.urlUbicaciones)
       .pipe(map((pagina) => pagina.items));
+  }
+
+  aprobar(pedidoId: number, datos: AprobarPedidoCompraDto = {}): Observable<PedidoCompraDto> {
+    return this.http.post<PedidoCompraDto>(`${this.url}/${pedidoId}/aprobacion`, datos);
+  }
+
+  cancelar(pedidoId: number, datos: CancelarPedidoCompraDto): Observable<PedidoCompraDto> {
+    return this.http.post<PedidoCompraDto>(`${this.url}/${pedidoId}/cancelacion`, datos);
   }
 
   registrarRecepcion(

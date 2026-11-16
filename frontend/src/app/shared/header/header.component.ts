@@ -21,6 +21,7 @@ export class HeaderComponent {
   protected readonly config = HEADER_CONFIG;
   protected readonly isMenuOpen = signal(false);
   protected readonly usuario = this.sessionService.usuario;
+  protected readonly nombreMostrar = this.sessionService.nombreMostrar;
   protected readonly esModoMock = this.sessionService.esModoMock;
 
   private readonly urlActual = toSignal(

@@ -27,9 +27,9 @@
         </nav>
 
         <div class="session-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-          @if (usuario(); as user) {
+          @if (usuario()) {
             <span style="font-size: 0.8rem; color: var(--ui-text-muted);">
-              {{ user.nombre || user.correo }}
+              {{ nombreMostrar() }}
             </span>
           }
 

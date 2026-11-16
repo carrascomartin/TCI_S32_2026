@@ -16,7 +16,7 @@ describe('SessionService', () => {
           useValue: {
             login: () => of({ access_token: 'prueba', token_type: 'bearer', expires_in: 60 }),
             obtenerPerfil: () => of({
-              id: 1, correo: 'demo@example.invalid', nombre: 'Demo',
+              usuario_id: 1, correo: 'demo@example.invalid', nombre: 'Demo',
               roles: ['encargado_mantenimiento'],
             }),
           },
