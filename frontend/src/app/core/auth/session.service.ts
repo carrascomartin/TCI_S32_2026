@@ -21,6 +21,15 @@ export class SessionService {
   readonly esModoMock = computed(() => environment.useMockData);
   readonly cargandoPerfil = this._cargandoPerfil.asReadonly();
 
+  readonly nombreMostrar = computed(() => {
+    const user = this._usuario();
+    if (!user) {
+      return '';
+    }
+    const completo = [user.nombre, user.apellido].filter(Boolean).join(' ').trim();
+    return completo || user.correo;
+  });
+
   readonly estaAutenticado = computed(() => {
     if (environment.useMockData) {
       return true;
@@ -42,10 +51,11 @@ export class SessionService {
         },
         error: () => {
           this._usuario.set({
-            id: 0,
+            usuario_id: 0,
             correo: 'demo@tci.local',
-            nombre: 'Usuario Demostración',
-            roles: ['ENCARGADO_MANTENIMIENTO'],
+            nombre: 'Usuario',
+            apellido: 'Demostración',
+            roles: ['encargado_mantenimiento'],
             esDemo: true,
           });
           this._cargandoPerfil.set(false);
