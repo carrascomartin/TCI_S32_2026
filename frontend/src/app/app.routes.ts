@@ -104,6 +104,22 @@ export const routes: Routes = [
       },
 
       {
+        path: 'ubicaciones',
+        title: 'Ubicaciones · TCI',
+        providers: [
+          {
+            provide: RepuestosService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRepuestosService)
+                : inject(RepuestosHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/repuestos/ubicaciones.page').then((page) => page.UbicacionesPage),
+      },
+
+      {
         path: 'reposicion',
         providers: [
           {
