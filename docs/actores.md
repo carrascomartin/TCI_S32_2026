@@ -27,6 +27,19 @@
 
 La tabla de permisos es una propuesta para validar: hoy el frontend no tiene autenticación real ni estas restricciones implementadas (todas las pantallas se navegan sin login en modo mock, ver `frontend/SKILL.md`), así que esto queda como la referencia a implementar cuando se conecte la autenticación real (M5).
 
+## Permisos de la API de repuestos y ubicaciones (T28)
+
+El backend verifica estos roles en cada solicitud, leyéndolos de la base (no del token). Sin token responde `401`; con un rol sin permiso, `403`.
+
+| Operación | Operario | Empleado de mantenimiento | Encargado | Gerencia/Administración |
+| --- | --- | --- | --- | --- |
+| Listar, buscar y consultar repuestos (`GET /repuestos`, `/repuestos/{id}`, `/repuestos/codigo/{codigo}`) | — | Sí | Sí | Sí |
+| Crear y actualizar repuestos (`POST /repuestos`, `PATCH /repuestos/{id}`) | — | Sí | Sí | — |
+| Listar ubicaciones (`GET /ubicaciones`) | — | Sí | Sí | Sí |
+| Crear ubicaciones (`POST /ubicaciones`) | — | Sí | Sí | — |
+
+El empleado mantiene el catálogo porque es quien ingresa repuestos al almacén; el encargado, porque carga el stock recibido y su ubicación (RN-08). Gerencia solo consulta y el operario no accede al almacén.
+
 ## Fuente
 
 - `docs/dominio/dominio.md`, sección 3 (actores) y sección 7, decisión 1 (fusión de Gerencia y Administración).
