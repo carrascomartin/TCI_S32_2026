@@ -9,9 +9,11 @@ import { PaginationComponent } from '@shared/ui/pagination';
 import { SearchComponent, type SearchFunction } from '@shared/ui/search';
 import { DataTableComponent } from '@shared/ui/table';
 import { environment } from '../../../environments/environment';
+import { SessionService } from '../../core/auth/session.service';
 import { ESTADOS_STOCK, FILTROS, REPUESTOS_CONFIG } from './repuestos.config';
 import {
   FiltroEstado,
+  ROLES_ESCRITURA,
   RepuestoDto,
   TAMANO_PAGINA,
   cifra,
@@ -44,8 +46,12 @@ const normalizar = (texto: string): string =>
 export class RepuestosPage {
   private readonly servicio = inject(RepuestosService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sesion = inject(SessionService);
 
   protected readonly config = REPUESTOS_CONFIG;
+  protected readonly puedeEditar = computed(() =>
+    this.sesion.roles().some((rol) => ROLES_ESCRITURA.includes(rol.toLowerCase())),
+  );
   protected readonly filtros = FILTROS;
   protected readonly esDemo = environment.useMockData;
   protected readonly cifra = cifra;

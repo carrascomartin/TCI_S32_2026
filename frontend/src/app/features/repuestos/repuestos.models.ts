@@ -41,6 +41,39 @@ export interface RepuestoDto {
   maquinas_compatibles?: MaquinaCompatibleDto[];
 }
 
+export interface RepuestoCreateDto {
+  codigo: string;
+  nombre: string;
+  descripcion?: string | null;
+  stock_minimo: number;
+}
+
+export interface RepuestoUpdateDto {
+  codigo?: string;
+  nombre?: string;
+  descripcion?: string | null;
+  stock_minimo?: number;
+  activo?: boolean;
+}
+
+export interface UbicacionDto extends UbicacionResumenDto {
+  activo: boolean;
+}
+
+export interface UbicacionCreateDto {
+  codigo: string;
+  descripcion?: string | null;
+}
+
+/** Cuerpo de error del contrato v0 (`ErrorResponseDto`). */
+export interface ErrorApiDto {
+  codigo: string;
+  mensaje: string;
+}
+
+/** Roles que pueden crear y editar repuestos y ubicaciones (docs/actores.md). */
+export const ROLES_ESCRITURA = ['empleado_mantenimiento', 'encargado_mantenimiento'];
+
 export type EstadoStock = 'sin_stock' | 'bajo_minimo' | 'normal';
 export type FiltroEstado = 'todos' | EstadoStock;
 
