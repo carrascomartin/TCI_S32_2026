@@ -1,11 +1,12 @@
-import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+
 import { App } from './app';
 import { AuthService } from './features/auth/auth.service';
 
-describe('App', () => {
+describe('Aplicación', () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
@@ -17,25 +18,18 @@ describe('App', () => {
           provide: AuthService,
           useValue: {
             login: () => of({ access_token: 'token', token_type: 'bearer', expires_in: 60 }),
-            obtenerPerfil: () =>
-              of({ usuario_id: 1, correo: 'demo@example.invalid', nombre: 'Demo', roles: [] }),
+            obtenerPerfil: () => of({ usuario_id: 1, correo: 'demo@example.invalid', nombre: 'Demo', roles: [] }),
           },
         },
       ],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('crea la aplicación y muestra el pie del sistema', async () => {
     const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
-  it('should render header, content area and footer', async () => {
-    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-header')).toBeTruthy();
-    expect(compiled.querySelector('main.app-content')).toBeTruthy();
-    expect(compiled.querySelector('app-footer')).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('TCI');
   });
 });

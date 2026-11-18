@@ -27,6 +27,29 @@
       <p role="note" class="text-sm text-muted-foreground">{{ config.demo }}</p>
     }
 
+    @if (puedeEditar) {
+      <section hlmCard>
+        <div hlmCardContent>
+          <h2 class="text-xl font-semibold">Editar máquina</h2>
+          @if (mensajeEdicion()) { <p role="status">{{ mensajeEdicion() }}</p> }
+          <form (ngSubmit)="guardar()" class="flex flex-wrap items-end gap-3">
+            <label>Código <input class="border rounded p-2" name="codigo" [(ngModel)]="codigoEdicion" required maxlength="100" /></label>
+            <label>Número de serie <input class="border rounded p-2" name="serie" [(ngModel)]="serieEdicion" maxlength="100" /></label>
+            <label>Tipo
+              <select class="border rounded p-2" name="tipo" [(ngModel)]="tipoEdicion" required>
+                @for (tipo of tipos(); track tipo.id) {
+                  <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+                }
+              </select>
+            </label>
+            <label>Fecha de instalación <input class="border rounded p-2" type="datetime-local" name="fecha" [(ngModel)]="fechaEdicion" /></label>
+            <label>Estado <input class="border rounded p-2" name="estado" [(ngModel)]="estadoEdicion" required maxlength="50" /></label>
+            <button hlmBtn type="submit" [disabled]="guardando() || !codigoEdicion.trim() || !estadoEdicion.trim()">Guardar</button>
+          </form>
+        </div>
+      </section>
+    }
+
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>Datos de la máquina</h2>

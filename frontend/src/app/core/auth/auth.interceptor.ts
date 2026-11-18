@@ -13,9 +13,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const esLogin = req.url.includes('/auth/token');
   const token = sessionService.obtenerToken();
+  const destino = new URL(req.url, window.location.origin);
+  const api = new URL(environment.apiUrl || window.location.origin, window.location.origin);
+  const esApi = destino.origin === api.origin &&
+    (destino.pathname.startsWith('/api/') || destino.pathname.startsWith('/auth/'));
 
   const authReq =
-    token && !esLogin
+    token && !esLogin && esApi
       ? req.clone({
           setHeaders: {
             Authorization: `Bearer ${token}`,
@@ -25,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !esLogin) {
+      if (error.status === 401 && !esLogin && esApi) {
         sessionService.cerrarSesion();
       }
       return throwError(() => error);

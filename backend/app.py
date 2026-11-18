@@ -80,6 +80,21 @@ def create_app(app_name: str = "app", description: str = "---", cfg: Config = No
         lifespan=lifespan,
         version=cfg.server.VERSION
     )
+
+    from fastapi import HTTPException
+    from fastapi.responses import JSONResponse
+    from fastapi.exception_handlers import http_exception_handler
+
+    @app.exception_handler(HTTPException)
+    async def manejar_error_http(request: Request, error: HTTPException):
+        """Adapta los errores de autorización del contrato v0."""
+        if request.url.path.startswith("/api/v0/") and error.status_code in (401, 403):
+            return JSONResponse(
+                status_code=error.status_code,
+                content={"codigo": "no_autorizado" if error.status_code == 401 else "prohibido", "mensaje": str(error.detail)},
+                headers=error.headers,
+            )
+        return await http_exception_handler(request, error)
     
     _load_routers(app, cfg.server.RESTRICTED_MODULES)
 

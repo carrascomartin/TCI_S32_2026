@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { MaquinaDto, Pagina } from './maquinas.models';
+import { DatosMaquina, MaquinaDto, Pagina, TipoMaquinaDto } from './maquinas.models';
 import { MaquinasService } from './maquinas.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,5 +19,21 @@ export class MaquinasHttpService extends MaquinasService {
 
   obtenerPorId(id: number): Observable<MaquinaDto> {
     return this.http.get<MaquinaDto>(`${this.url}/${id}`);
+  }
+
+  listarTipos(): Observable<TipoMaquinaDto[]> {
+    return this.http.get<Pagina<TipoMaquinaDto>>(`${environment.apiUrl}/api/v0/tipos-maquina?limit=100`).pipe(map((pagina) => pagina.items));
+  }
+
+  crearTipo(nombre: string): Observable<TipoMaquinaDto> {
+    return this.http.post<TipoMaquinaDto>(`${environment.apiUrl}/api/v0/tipos-maquina`, { nombre });
+  }
+
+  crear(datos: DatosMaquina): Observable<MaquinaDto> {
+    return this.http.post<MaquinaDto>(this.url, datos);
+  }
+
+  actualizar(id: number, datos: Partial<DatosMaquina> & { estado?: string }): Observable<MaquinaDto> {
+    return this.http.patch<MaquinaDto>(`${this.url}/${id}`, datos);
   }
 }

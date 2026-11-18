@@ -1,6 +1,8 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { SessionService } from '../../core/auth/session.service';
 import { HlmBadgeImports } from '@shared/ui/badge';
 import { HlmButtonImports } from '@shared/ui/button';
 import { HlmCardImports } from '@shared/ui/card';
@@ -8,7 +10,7 @@ import { HlmInputImports } from '@shared/ui/input';
 import { DataTableComponent } from '@shared/ui/table';
 import { environment } from '../../../environments/environment';
 import { ESTADOS_MAQUINA, MAQUINAS_CONFIG } from './maquinas.config';
-import { MaquinaDto } from './maquinas.models';
+import { MaquinaDto, TipoMaquinaDto } from './maquinas.models';
 import { MaquinasService } from './maquinas.service';
 
 type Carga = 'cargando' | 'listo' | 'error';
@@ -18,6 +20,7 @@ type Carga = 'cargando' | 'listo' | 'error';
   standalone: true,
   imports: [
     RouterLink,
+    FormsModule,
     HlmBadgeImports,
     HlmButtonImports,
     HlmCardImports,
@@ -29,6 +32,7 @@ type Carga = 'cargando' | 'listo' | 'error';
 export class MaquinasPage {
   private readonly servicio = inject(MaquinasService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sesion = inject(SessionService);
 
   protected readonly config = MAQUINAS_CONFIG;
   protected readonly esDemo = environment.useMockData;
@@ -37,6 +41,15 @@ export class MaquinasPage {
   protected readonly busqueda = signal('');
   protected readonly tipoSeleccionado = signal('');
   protected readonly estadoSeleccionado = signal('');
+  protected readonly tiposDisponibles = signal<TipoMaquinaDto[]>([]);
+  protected readonly mensajeFormulario = signal('');
+  protected readonly guardando = signal(false);
+  protected readonly puedeEditar = computed(() => !this.esDemo && this.sesion.roles().includes('encargado_mantenimiento'));
+  protected codigoNuevo = '';
+  protected tipoNuevo = '';
+  protected idTipoNuevo = 0;
+  protected serieNueva = '';
+  protected fechaNueva = '';
 
   protected readonly tipos = computed(() => {
     const tipos = new Map<number, string>();
@@ -77,6 +90,57 @@ export class MaquinasPage {
 
   constructor() {
     this.cargar();
+    if (!this.esDemo) this.cargarTipos();
+  }
+
+  protected cargarTipos(): void {
+    this.servicio.listarTipos().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (tipos) => this.tiposDisponibles.set(tipos),
+      error: () => this.mensajeFormulario.set('No se pudieron cargar los tipos de máquina.'),
+    });
+  }
+
+  protected crearTipo(): void {
+    const nombre = this.tipoNuevo.trim();
+    if (!nombre || this.guardando()) return;
+    this.guardando.set(true);
+    this.servicio.crearTipo(nombre).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (tipo) => {
+        this.tipoNuevo = '';
+        this.idTipoNuevo = tipo.id;
+        this.mensajeFormulario.set('Tipo creado correctamente.');
+        this.guardando.set(false);
+        this.cargarTipos();
+      },
+      error: () => {
+        this.mensajeFormulario.set('No se pudo crear el tipo. Revisá si el nombre ya existe.');
+        this.guardando.set(false);
+      },
+    });
+  }
+
+  protected crearMaquina(): void {
+    if (!this.codigoNuevo.trim() || !this.idTipoNuevo || this.guardando()) return;
+    this.guardando.set(true);
+    this.servicio.crear({
+      codigo: this.codigoNuevo.trim(),
+      tipo_maquina_id: Number(this.idTipoNuevo),
+      numero_serie: this.serieNueva.trim() || null,
+      fecha_instalacion: this.fechaNueva ? new Date(this.fechaNueva).toISOString() : null,
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.codigoNuevo = '';
+        this.serieNueva = '';
+        this.fechaNueva = '';
+        this.mensajeFormulario.set('Máquina creada correctamente.');
+        this.guardando.set(false);
+        this.cargar();
+      },
+      error: () => {
+        this.mensajeFormulario.set('No se pudo crear la máquina. Revisá el código y el número de serie.');
+        this.guardando.set(false);
+      },
+    });
   }
 
   protected cargar(): void {

@@ -15,6 +15,7 @@ export class SessionService {
 
   private readonly _usuario = signal<UsuarioPerfil | null>(null);
   private readonly _cargandoPerfil = signal(false);
+  private readonly versionSesion = signal(0);
 
   readonly usuario = this._usuario.asReadonly();
   readonly roles = computed(() => this._usuario()?.roles ?? []);
@@ -31,6 +32,7 @@ export class SessionService {
   });
 
   readonly estaAutenticado = computed(() => {
+    this.versionSesion();
     if (environment.useMockData) {
       return true;
     }
@@ -38,7 +40,7 @@ export class SessionService {
   });
 
   constructor() {
-    this.inicializarSesion();
+    queueMicrotask(() => this.inicializarSesion());
   }
 
   private inicializarSesion(): void {
@@ -121,10 +123,12 @@ export class SessionService {
     const expiraEn = Date.now() + respuesta.expires_in * 1000;
     localStorage.setItem(this.TOKEN_KEY, respuesta.access_token);
     localStorage.setItem(this.EXPIRES_KEY, expiraEn.toString());
+    this.versionSesion.update((version) => version + 1);
   }
 
   private limpiarStorage(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.EXPIRES_KEY);
+    this.versionSesion.update((version) => version + 1);
   }
 }
