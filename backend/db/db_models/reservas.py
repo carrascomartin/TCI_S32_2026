@@ -14,7 +14,7 @@ class ReservaDb(SQLModel, table=True):
     titulo: str = Field(max_length=200)
     motivo: str | None = Field(default=None, sa_type=Text)
     planificada_para: datetime
-    estado: str = Field(max_length=50, default='planificada', sa_column_kwargs={"server_default": text("'planificada'")})
+    estado: str = Field(max_length=50, default='activa', sa_column_kwargs={"server_default": text("'activa'")})
     autorizada_por_usuario_id: int | None = Field(default=None, foreign_key="usuarios.id")
     liberada_por_usuario_id: int | None = Field(default=None, foreign_key="usuarios.id")
     creada_en: datetime = Field(default_factory=fecha_actual, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")})
