@@ -40,6 +40,17 @@ El backend verifica estos roles en cada solicitud, leyéndolos de la base (no de
 
 El empleado mantiene el catálogo porque es quien ingresa repuestos al almacén; el encargado, porque carga el stock recibido y su ubicación (RN-08). Gerencia solo consulta y el operario no accede al almacén.
 
+## Permisos de la API de reservas (RN-05 y RN-10)
+
+| Operación | Operario | Empleado de mantenimiento | Encargado | Gerencia/Administración |
+| --- | --- | --- | --- | --- |
+| Listar y consultar reservas (`GET /reservas`, `/reservas/{id}`) | — | Sí | Sí | Sí |
+| Crear una reserva (`POST /reservas`) | — | Sí | Sí | — |
+| Ejecutar una reserva (`POST /reservas/{id}/ejecucion`) | — | Sí | Sí | — |
+| Liberar una reserva (`POST /reservas/{id}/liberacion`) | — | — | Sí | — |
+
+Solo el encargado libera una reserva (RN-05) y queda registrado como quien la autorizó. El empleado crea y ejecuta las reservas porque es quien hace el mantenimiento. El aviso inmediato de la liberación depende del puerto de notificación (RN-09) y todavía no está implementado.
+
 ## Fuente
 
 - `docs/dominio/dominio.md`, sección 3 (actores) y sección 7, decisión 1 (fusión de Gerencia y Administración).

@@ -20,7 +20,7 @@ Decidimos mantener la siguiente arquitectura y stack:
 - **Backend:** FastAPI sobre Python.
 - **Validación y contratos:** Pydantic mediante DTOs separados.
 - **Persistencia:** SQLAlchemy como ORM.
-- **Base de datos prevista:** PostgreSQL para el entorno objetivo.
+- **Base de datos prevista:** PostgreSQL para el entorno objetivo. El entregable de M6 ya lo usa en Docker Compose; ver el [ADR M6](M6-adr-sqlite-o-postgres.md).
 - **Arquitectura:** organización modular y multicapa.
 
 La arquitectura se dividirá en las siguientes responsabilidades:
