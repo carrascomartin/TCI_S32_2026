@@ -1,33 +1,57 @@
-"""Pruebas de reservas: RN-05 (reserva y liberación) y RN-10 (consumo en una transacción)."""
+"""Pruebas de reservas: RN-05 (reserva y liberación) y RN-10 (consumo en una transacción).
+
+Cada prueba arma sus propios datos para no depender del script de datos de prueba.
+"""
 
 import sqlite3
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from typer.testing import CliRunner
 
 from app import create_app
-from datos_prueba import aplicacion as datos_prueba
+from autenticacion_jwt import crear_hash_contrasena
 from utils import load_config, update_config
 
 CONTRASENA = "Prueba1234"
+ROLES = {
+    "operario": "operario_maquina",
+    "empleado": "empleado_mantenimiento",
+    "encargado": "encargado_mantenimiento",
+    "gerencia": "gerencia_administracion",
+}
+# (repuesto, ubicación, físico, reservado): cada prueba elige existencias con disponible suficiente.
+EXISTENCIAS = [(1, 1, 10, 0), (2, 2, 8, 0), (3, 1, 6, 2), (3, 2, 4, 0)]
+
+
+def cargar_datos(base: Path) -> None:
+    """Datos propios de la prueba, independientes de datos_prueba.py."""
+    with sqlite3.connect(base) as db:
+        for numero, (nombre, rol) in enumerate(ROLES.items(), start=1):
+            db.execute("INSERT INTO roles (id, nombre) VALUES (?, ?)", (numero, rol))
+            db.execute(
+                "INSERT INTO usuarios (id, nombre, apellido, genero, correo, hash_contrasena, verificado)"
+                " VALUES (?, ?, 'Prueba', 'F', ?, ?, 1)",
+                (numero, nombre.title(), f"{nombre}@demo.invalid", crear_hash_contrasena(CONTRASENA)),
+            )
+            db.execute("INSERT INTO usuarios_x_roles (usuario_id, rol_id) VALUES (?, ?)", (numero, numero))
+        db.executemany(
+            "INSERT INTO ubicaciones (id, codigo) VALUES (?, ?)", [(1, "A-01-01"), (2, "B-02-02")]
+        )
+        db.executemany(
+            "INSERT INTO repuestos (id, codigo, nombre, stock_minimo) VALUES (?, ?, ?, 2)",
+            [(1, "REP-1", "Rodamiento"), (2, "REP-2", "Filtro"), (3, "REP-3", "Correa")],
+        )
+        db.executemany(
+            "INSERT INTO repuestos_x_ubicaciones (repuesto_id, ubicacion_id, cantidad_fisica, cantidad_reservada)"
+            " VALUES (?, ?, ?, ?)",
+            EXISTENCIAS,
+        )
 
 
 @pytest.fixture
 def entorno(tmp_path: Path):
     base = tmp_path / "reservas.sqlite3"
-    config = tmp_path / "config.toml"
-    config.write_text(
-        Path("config.toml")
-        .read_text(encoding="utf-8")
-        .replace('DB_NAME = "data/db.sqlite3"', f'DB_NAME = "{base.as_posix()}"'),
-        encoding="utf-8",
-    )
-    cargado = CliRunner().invoke(
-        datos_prueba, ["cargar", "--config", str(config), "--contrasena", CONTRASENA]
-    )
-    assert cargado.exit_code == 0, cargado.output
     configuracion = load_config(reload=True)
     jwt = configuracion.auth.JWT.model_copy(update={"HABILITADO": True})
     app = create_app(
@@ -40,6 +64,7 @@ def entorno(tmp_path: Path):
         )
     )
     with TestClient(app) as client:
+        cargar_datos(base)
         yield client, base
     load_config(reload=True)
 
@@ -247,11 +272,12 @@ def test_listado_y_permisos(entorno):
     gerencia = sesion(client, "gerencia@demo.invalid")
     operario = sesion(client, "operario@demo.invalid")
     (repuesto, ubicacion, _), = existencias_libres(base, 2, 1)
+    client.post("/api/v0/reservas", headers=empleado, json=nueva((repuesto, ubicacion, 1)))
     reserva = client.post("/api/v0/reservas", headers=empleado, json=nueva((repuesto, ubicacion, 1))).json()
     client.post(f"/api/v0/reservas/{reserva['id']}/liberacion", headers=sesion(client, "encargado@demo.invalid"))
 
     todas = client.get("/api/v0/reservas?limit=100", headers=gerencia).json()
-    assert todas["total"] >= 2
+    assert todas["total"] == 2
     liberadas = client.get("/api/v0/reservas?estado=liberada", headers=gerencia).json()
     assert [r["id"] for r in liberadas["items"]] == [reserva["id"]]
     activas = client.get("/api/v0/reservas?estado=activa", headers=gerencia).json()
