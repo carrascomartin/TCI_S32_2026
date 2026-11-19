@@ -7,7 +7,7 @@ import {
 /** Cada módulo indica qué roles lo ven; sin `roles`, lo ven todos. */
 export const HEADER_CONFIG = {
   brand: {
-    name: 'TCI · Mantenimiento de planta',
+    name: 'CI',
     homeUrl: '/',
   },
   navigation: [
