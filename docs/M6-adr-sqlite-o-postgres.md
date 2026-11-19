@@ -7,125 +7,107 @@
 
 ## Contexto
 
-El ADR T06 declara PostgreSQL como base de datos prevista para el entorno objetivo. El `docker-compose.yml` del proyecto levanta solo `backend` y `frontend`, y el backend usa SQLite: un archivo `data/db.sqlite3` dentro del volumen `backend-data` (`config.toml`: `DB_TYPE = "sqlite3"`, `DB_DRIVER = "aiosqlite"`).
+El stack de la materia (`docs/cronograma_alumnos.md`) fija **SQLModel + Alembic + PostgreSQL** para los datos, y el ADR T06 declara PostgreSQL como base prevista. Hasta ahora el `docker-compose.yml` levantaba solo `backend` y `frontend`, y el backend usaba SQLite: un archivo `data/db.sqlite3` dentro del volumen `backend-data`.
 
-La devolución de la cátedra marca esta diferencia como una brecha ("SQLite en compose, no Postgres") y pregunta: "¿SQLite o Postgres? Si mañana lo despliegan, ¿qué cambia?". Este documento responde las dos preguntas con una prueba hecha contra PostgreSQL, no con suposiciones.
+La devolución de la cátedra marca esa diferencia como una brecha ("SQLite en compose, no Postgres") y pregunta: "¿SQLite o Postgres? Si mañana lo despliegan, ¿qué cambia? ¿Por qué el compose no levanta Postgres?". Este documento responde con pruebas hechas contra PostgreSQL, no con suposiciones.
 
-Estado actual de la capa de datos, que no cambia con esta decisión: SQLModel sobre SQLAlchemy 2.0 en modo asíncrono, y sin herramienta de migraciones (el esquema se crea al iniciar con `create_all`).
+Estado de la capa de datos, que no cambia con esta decisión: SQLModel sobre SQLAlchemy 2.0 en modo asíncrono, sin herramienta de migraciones (el esquema se crea al iniciar con `create_all`).
 
 ## Decisión
 
-1. El entregable de M6 usa **SQLite**, en un archivo dentro de un volumen de Docker.
-2. **PostgreSQL** sigue siendo la base objetivo para producción, como dice T06.
-3. Pasar de una a otra es un cambio de **configuración y de despliegue**, no de código de la aplicación. Lo verificamos (ver "Verificación").
-4. No se agrega un servicio PostgreSQL al compose del entregable. La receta verificada para hacerlo está en este documento.
+1. El entregable usa **PostgreSQL 16**: `docker compose up` levanta el servicio `db` y el backend se conecta con `asyncpg`.
+2. **SQLite** se mantiene para desarrollar sin Docker y para la suite de tests, que lo usa directamente.
+3. Cambiar de motor es un cambio de **configuración y de despliegue**, no de código de la aplicación. Lo verificamos (ver "Verificación").
 
-## Por qué el compose no levanta PostgreSQL
+## Por qué
 
-- **Reproducibilidad de la entrega.** Hoy `docker compose up` levanta dos contenedores desde un clone limpio. PostgreSQL agrega un tercer servicio, una contraseña, un volumen y un orden de arranque (la base tiene que estar lista antes que el backend). Son más pasos que pueden fallar durante la entrega y la demo.
-- **Escala del problema.** El sistema es un prototipo con pocos usuarios y poca escritura simultánea. SQLite alcanza y no es el límite del sistema.
-- **No hay migraciones.** El esquema se crea al iniciar y no hay Alembic. Con datos que deban sobrevivir a cambios de esquema, PostgreSQL sin migraciones no mejora a SQLite y suma riesgo.
-- **La suite de tests está atada a SQLite.** 8 de los 27 tests usan `sqlite3` directamente. Cambiar el motor del entregable obliga a reescribirlos.
-- **Plazo.** El congelamiento es el 20/11. No conviene cambiar infraestructura en la última semana.
+- **Es el stack pedido.** El cronograma fija PostgreSQL y la cátedra marcó SQLite en el compose como una brecha.
+- **El costo era bajo y está medido.** El código de la aplicación no cambia: `asyncpg` ya estaba en las dependencias y la base se elige por configuración. Antes de decidir se comparó el comportamiento de la API sobre los dos motores (ver "Verificación").
+- **Lo que se demuestra es lo que se despliega.** Con SQLite en el compose, la demo mostraba un motor distinto del objetivo, y diferencias como la de la búsqueda con mayúsculas acentuadas (ver más abajo) quedaban ocultas hasta producción.
 
-## Qué cambia si mañana lo despliegan con PostgreSQL
+## Cómo quedó
 
-| Qué | Hoy (SQLite) | Con PostgreSQL | Verificado |
-| --- | --- | --- | --- |
-| Driver | `aiosqlite` | `asyncpg`: ya está en `pyproject.toml` (0.31.0) y dentro de la imagen del backend | Sí |
-| Configuración | `[database]` con `DB_TYPE = "sqlite3"` y `DB_NAME = "data/db.sqlite3"` | `DB_TYPE = "postgresql"`, `DB_DRIVER = "asyncpg"`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME`, en un `config.<entorno>.toml` | Sí |
-| Compose | Volumen `backend-data` con el archivo | Servicio `db` con volumen `pgdata`, healthcheck y `depends_on`; el backend deja de usar `backend-data` | Sí |
-| Código de la aplicación | Sin cambios | Sin cambios: los dos puntos propios de SQLite en `db/database.py` (`check_same_thread` y `PRAGMA foreign_keys=ON`) ya se aplican solo cuando el motor es SQLite | Sí |
-| Esquema | `create_all` | `create_all` crea las mismas 21 tablas | Sí |
-| Datos de prueba | `datos_prueba.py cargar` | El mismo comando, sin cambios | Sí |
-| Migraciones | No hay | Hay que incorporar Alembic antes de producción | No aplica |
-| Tests | 8 de 27 usan `sqlite3` | Reemplazar esos accesos por la sesión de SQLAlchemy para correrlos contra PostgreSQL | No |
+| Qué | Sin Docker y en los tests | En Docker Compose |
+| --- | --- | --- |
+| Motor | SQLite, archivo `data/db.sqlite3` | PostgreSQL 16 (`postgres:16-alpine`), servicio `db` |
+| Driver | `aiosqlite` | `asyncpg` |
+| Configuración | `backend/config.toml` | `backend/config.docker.toml`, montado como `/app/config.toml` |
+| Contraseña | No aplica | `POSTGRES_PASSWORD` del `.env`, que llega al backend como `AUTOCONFIG_DATABASE__DB_PASSWORD` |
+| Datos | Archivo local | Volumen `pgdata`: `docker compose down` los conserva y `down -v` los borra |
+| Arranque | Inmediato | El backend espera a que `db` esté sano (`pg_isready`) |
 
-### Receta de Compose
-
-Se usa un archivo aparte que se suma al compose existente: `docker compose -f docker-compose.yml -f docker-compose.postgres.yml up -d db backend`. La contraseña es la misma en `POSTGRES_PASSWORD` y en `DB_PASSWORD` del archivo de configuración, y ese archivo no se versiona: `config.*.toml` está en el `.gitignore` y el `.dockerignore` del backend.
-
-```yaml
-services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: tci
-      POSTGRES_PASSWORD: <contraseña>
-      POSTGRES_DB: tci
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tci -d tci"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-  backend:
-    volumes: !override
-      - ./backend/config.postgres.toml:/app/config.toml:ro
-    depends_on:
-      db:
-        condition: service_healthy
-volumes:
-  pgdata:
-```
-
-Las claves `SECRET_KEY` y `CLAVE_JWT` siguen llegando por el `.env` de la raíz (ver el README), igual que con SQLite, así que `config.postgres.toml` no las lleva.
-
-`config.postgres.toml` es una copia de `config.toml` con `[database]` apuntando al servicio `db`: `DB_TYPE = "postgresql"`, `DB_DRIVER = "asyncpg"`, `DB_HOST = "db"`, `DB_PORT = 5432`, `DB_USER = "tci"`, `DB_NAME = "tci"` y la contraseña.
+- `config.docker.toml` es igual a `config.toml` salvo la sección `[database]`, y no incluye la contraseña. `tests/test_config_docker.py` falla si los dos archivos difieren en otra sección, para que no se separen con el tiempo.
+- Como el archivo se monta en el lugar de `config.toml`, los comandos del contenedor (`app.py`, `datos_prueba.py`, `gestionar_acceso.py`) usan PostgreSQL sin indicar `--config`.
+- El puerto 5432 no se publica en el host: solo el backend habla con la base.
+- La base arranca vacía. Los datos de prueba se cargan con el mismo comando de siempre, dentro del contenedor.
+- Los datos que hubiera en el volumen viejo `backend-data` (SQLite) no se migran.
 
 ## Verificación
 
-Se hizo el 19/11/2026 con PostgreSQL 16, sin modificar el código del proyecto.
+Se hizo el 19/11/2026 con PostgreSQL 16, en dos etapas.
 
-1. **Misma carga de datos en los dos motores.** `datos_prueba.py cargar` terminó sin errores en ambos: 9 máquinas, 10 ubicaciones, 10 repuestos, 7 incidencias, 7 pedidos de compra y 15 movimientos de stock.
-2. **Mismo esquema.** Ambos crearon las mismas 21 tablas, con 16 restricciones `CHECK` y 40 claves foráneas definidas. La diferencia está en los tipos: PostgreSQL usa `timestamp with time zone` y `boolean`.
-3. **Mismo comportamiento de la API.** Se hicieron 31 pedidos HTTP idénticos a un backend sobre cada motor (login, consultas, búsquedas, altas, ediciones, errores `404`, `409`, `422` y `403` por rol) y se compararon el código y el cuerpo, sin comparar los valores de las fechas. **29 respuestas fueron idénticas y 2 difirieron** (ver la sección siguiente). El formato de las fechas fue el mismo en ambos (`2026-09-20T12:47:17.954462Z`).
+**Comparación entre motores, antes de decidir** (con el compose de prueba y sin modificar el código):
+
+1. **Misma carga de datos.** `datos_prueba.py cargar` terminó sin errores en los dos motores: 9 máquinas, 10 ubicaciones, 10 repuestos, 7 incidencias, 7 pedidos de compra y 15 movimientos de stock.
+2. **Mismo esquema.** Los dos crearon las mismas 21 tablas, con 16 restricciones `CHECK` y 40 claves foráneas. La diferencia está en los tipos: PostgreSQL usa `timestamp with time zone` y `boolean`.
+3. **Mismo comportamiento de la API.** Se hicieron 31 pedidos HTTP idénticos a un backend sobre cada motor (login, consultas, búsquedas, altas, ediciones y errores `404`, `409`, `422` y `403` por rol) y se compararon el código y el cuerpo, sin los valores de fecha. **29 respuestas fueron idénticas y 2 difirieron** (ver la sección siguiente). Las fechas tuvieron el mismo formato en los dos (`2026-09-20T12:47:17.954462Z`).
 4. **Stock no negativo.** Un `UPDATE` que deja `cantidad_fisica` en `-1` es rechazado por la restricción `CHECK` en los dos motores.
-5. **Receta de Compose.** Con la receta de arriba (con la ruta del archivo de configuración y el puerto adaptados al entorno de prueba), el backend levantó con `DatabaseType: postgresql`, esperó a que la base estuviera sana, cargó los datos de prueba desde dentro del contenedor y respondió la API con autenticación. Tras `docker compose down` y `up`, los 10 repuestos seguían ahí (el volumen `pgdata` conserva los datos).
+
+**El compose del entregable** (en un proyecto de Compose aparte, con los endpoints de reservas incluidos):
+
+5. El backend arrancó con `DatabaseType: postgresql` después de que `db` estuviera sano, y `datos_prueba.py cargar` funcionó dentro del contenedor sin `--config`.
+6. Pasando por el nginx del frontend, como lo hace el navegador: el login y `GET` de máquinas (9), repuestos (10), ubicaciones (10) y reservas respondieron `200` con token y `401` sin token.
+7. Reservas: crear una reserva bajó el disponible del repuesto de 4 a 1, una reserva mayor al disponible respondió `409 stock_insuficiente` sin cambios, el empleado recibió `403` al liberar, el encargado liberó (`200`) y la ejecución descontó lo consumido y liberó el resto.
+8. Fallo en medio de una ejecución (RN-10): se borró la existencia de la segunda partida antes de ejecutar. La API respondió `409` y en PostgreSQL no quedó nada a medias: la primera existencia, los movimientos de consumo y el estado `activa` de la reserva siguieron iguales.
+9. Tras `docker compose down` y `up`, las 4 reservas seguían en la base (el volumen `pgdata` conserva los datos).
 
 No se verificó:
 
-- La suite de tests contra PostgreSQL (no corre sin reescribir los 8 tests que usan `sqlite3`).
-- El frontend contra el compose con PostgreSQL. No se levantó, aunque solo habla HTTP con el backend.
+- La suite de tests contra PostgreSQL: 8 tests usan `sqlite3` directo y habría que reescribirlos.
+- Las pantallas del frontend en el navegador contra este compose (sí las rutas de la API a través de su nginx).
+- Incidencias, que todavía no están en `main`.
 - Carga, concurrencia real, copias de seguridad, TLS ni otras versiones de PostgreSQL.
 - Las migraciones de nombres heredadas de `_renombrar_tablas_autenticacion`, que solo aplican a bases creadas con el esquema anterior.
 
 ## Diferencias de comportamiento encontradas
 
-1. **Búsqueda de repuestos con mayúsculas acentuadas.** `GET /api/v0/repuestos?buscar=VÁLVULA` devuelve el repuesto en PostgreSQL y ninguno en SQLite. SQLAlchemy traduce `ilike` a `lower(col) LIKE lower(?)` en SQLite, y el `lower()` de SQLite solo convierte caracteres ASCII (`lower('VÁLVULA')` da `vÁlvula`). Con minúsculas (`válvula`) ambos encuentran el repuesto, y sin el acento (`valvula`) ninguno lo encuentra. Quedó fuera de esta decisión; corregirlo requiere normalizar el texto antes de buscar.
+1. **Búsqueda de repuestos con mayúsculas acentuadas.** `GET /api/v0/repuestos?buscar=VÁLVULA` devuelve el repuesto en PostgreSQL y ninguno en SQLite. SQLAlchemy traduce `ilike` a `lower(col) LIKE lower(?)` en SQLite, y el `lower()` de SQLite solo convierte caracteres ASCII (`lower('VÁLVULA')` da `vÁlvula`). Con minúsculas (`válvula`) los dos encuentran el repuesto, y sin el acento (`valvula`) ninguno. Con PostgreSQL en el compose, la demo se comporta como el motor objetivo; la diferencia queda solo para el desarrollo sin Docker.
 2. **Claves foráneas en SQLite.** PostgreSQL siempre las exige. SQLite las exige solo si cada conexión activa `PRAGMA foreign_keys=ON`. La aplicación lo hace, pero una conexión externa (un cliente SQL o un script) no: en la prueba, SQLite aceptó una incidencia con una máquina inexistente.
 3. **Fechas.** SQLite las guarda como texto sin zona horaria (siempre en UTC) y la capa de datos las vuelve a interpretar como UTC. PostgreSQL las guarda con zona horaria. La API devuelve el mismo formato.
 
 ## Alternativas consideradas
 
-### PostgreSQL en el compose del entregable
+### SQLite también en el entregable
 
-Es igual al entorno objetivo, tiene tipos y restricciones más estrictos y admite escrituras concurrentes. Se descartó por ahora por las razones de la sección "Por qué el compose no levanta PostgreSQL". Queda a un archivo de distancia: la receta está verificada.
+Era la propuesta inicial de este ADR: un servicio menos, sin contraseña de base y sin orden de arranque. Se descartó porque se aparta del stack pedido, oculta diferencias reales entre motores y su ventaja (menos pasos para levantar el proyecto) se resolvió igual: la contraseña va en el mismo `.env` que las claves y Compose ordena el arranque con el healthcheck.
 
-### SQLite también en producción
+### PostgreSQL también en los tests
 
-Sirve para una sola instancia del backend con poca escritura concurrente. No sirve para varias instancias (un archivo no se comparte de forma segura entre procesos en distintos hosts) ni para mucha escritura simultánea, porque SQLite admite un solo escritor a la vez. No lo recomendamos para producción.
+Es lo más fiel al entorno objetivo, pero obliga a reescribir los 8 tests que usan `sqlite3` y a tener una base levantada para correr la suite. Queda como trabajo pendiente.
+
+### SQLite en producción
+
+Sirve para una sola instancia con poca escritura concurrente. No sirve para varias instancias del backend ni para mucha escritura simultánea, porque admite un solo escritor a la vez.
 
 ## Consecuencias positivas
 
-- El entregable se levanta con un solo comando y sin servicios extra.
-- La portabilidad está comprobada y no solo declarada: pasar a PostgreSQL es un cambio de configuración, con una receta que ya funcionó.
-- Quedan registradas las diferencias de comportamiento entre los dos motores.
+- El entregable usa el motor del stack pedido y el mismo que tendría producción.
+- La portabilidad está comprobada en los dos sentidos, con las diferencias entre motores registradas.
+- `docker compose up` sigue siendo un solo comando desde un clone limpio, con un valor más en el `.env`.
 
 ## Consecuencias negativas y riesgos
 
-- Los datos del entregable viven en un archivo dentro de un volumen: `docker compose down -v` los borra y no hay copia de seguridad automática.
-- SQLite admite un solo escritor a la vez, así que no escala a varias instancias del backend.
-- Desarrollar sobre SQLite puede ocultar diferencias hasta que se cambie de motor, como la búsqueda con mayúsculas acentuadas.
-- Sin Alembic, un cambio de esquema sobre una base con datos requiere trabajo manual en cualquiera de los dos motores.
-- La suite de tests no cubre PostgreSQL.
-- La concurrencia de RN-01 (que el stock no quede negativo cuando dos empleados descuentan la última unidad) sigue sin decidirse (`docs/dominio/dominio.md`, sección 7, hueco 2). La restricción `CHECK` protege en ambos motores, pero una lectura seguida de una escritura se comporta distinto en cada uno, así que esa decisión tendrá que tomar en cuenta el motor.
+- La suite de tests corre sobre SQLite, no sobre el motor del entregable. Una diferencia entre motores puede pasar los tests y fallar en Docker.
+- Sin Alembic (que el stack también pide), un cambio de esquema sobre una base con datos requiere trabajo manual, ahora sobre PostgreSQL.
+- Quien ya tenía el proyecto levantado tiene que agregar `POSTGRES_PASSWORD` al `.env` y volver a cargar los datos de prueba.
+- `docker compose down -v` borra la base y no hay copia de seguridad automática.
+- La concurrencia de RN-01 (que el stock no quede negativo cuando dos empleados descuentan la última unidad) sigue sin decidirse (`docs/dominio/dominio.md`, sección 7, hueco 2). Las reservas ya actualizan las existencias con una sola sentencia condicionada en la base, que ese ADR puede tomar como punto de partida.
 
 ## Alcance de esta decisión
 
-Este ADR decide qué base usa el entregable y documenta el paso a PostgreSQL. No define:
+Este ADR decide qué base usa el entregable y cómo se configura. No define:
 
-- La estrategia de migraciones ni la incorporación de Alembic.
+- La incorporación de Alembic ni la estrategia de migraciones.
+- La migración de la suite de tests a PostgreSQL.
 - Las copias de seguridad ni la configuración de producción de PostgreSQL.
 - La decisión de concurrencia de RN-01.
