@@ -65,8 +65,13 @@
           @for (ubicacion of ubicaciones(); track ubicacion.id) {
             <li class="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
               <div class="min-w-0">
-                <p class="numeric font-medium">{{ ubicacion.codigo }}</p>
-                <p class="truncate text-xs text-muted-foreground">{{ ubicacion.descripcion }}</p>
+                <div class="flex items-center gap-1">
+                  <span class="numeric font-semibold">{{ ubicacion.codigo }}</span>
+                  <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Copiar código ' + ubicacion.codigo" title="Copiar código" (click)="copiarCodigo(ubicacion.codigo)">
+                    <app-icon name="copy" class="size-4" />
+                  </button>
+                </div>
+                <p class="text-xs font-semibold text-muted-foreground" [attr.title]="ubicacion.descripcion || null">{{ descripcionCorta(ubicacion.descripcion) }}</p>
               </div>
               <span hlmBadge [variant]="ubicacion.activo ? 'secondary' : 'outline'">
                 {{ ubicacion.activo ? config.activa : config.inactiva }}
@@ -86,8 +91,15 @@
             <tbody>
               @for (ubicacion of ubicaciones(); track ubicacion.id) {
                 <tr>
-                  <td class="numeric">{{ ubicacion.codigo }}</td>
-                  <td>{{ ubicacion.descripcion }}</td>
+                  <td>
+                    <div class="flex items-center gap-1">
+                      <span class="numeric font-semibold">{{ ubicacion.codigo }}</span>
+                      <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Copiar código ' + ubicacion.codigo" title="Copiar código" (click)="copiarCodigo(ubicacion.codigo)">
+                        <app-icon name="copy" class="size-4" />
+                      </button>
+                    </div>
+                  </td>
+                  <td class="font-semibold" [attr.title]="ubicacion.descripcion || null">{{ descripcionCorta(ubicacion.descripcion) }}</td>
                   <td>
                     <span hlmBadge [variant]="ubicacion.activo ? 'secondary' : 'outline'">
                       {{ ubicacion.activo ? config.activa : config.inactiva }}
