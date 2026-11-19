@@ -77,8 +77,7 @@ export class ConsultaIncidenciasPage {
   protected nombreMaquina(
     incidencia: IncidenciaDto,
   ): string {
-
-    return `${incidencia.maquina.tipo_maquina.nombre} ${incidencia.maquina.codigo}`;
+    return incidencia.maquina?.codigo ?? `Máquina ${incidencia.maquina_id}`;
   }
 
   protected estado(valor: string) {

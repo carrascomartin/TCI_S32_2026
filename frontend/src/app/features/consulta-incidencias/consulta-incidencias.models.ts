@@ -1,3 +1,4 @@
+
 export interface Pagina<T> {
   items: T[];
   total: number;
@@ -6,33 +7,28 @@ export interface Pagina<T> {
 }
 
 export interface FotoDto {
-  nombre_archivo: string;
+  id: number;
+  nombre_archivo: string | null;
   tipo_mime: string;
+  capturada_en: string | null;
   contenido_base64: string;
 }
 
 export interface IncidenciaDto {
   id: number;
+  maquina_id: number;
 
   descripcion: string;
-
   estado: string;
-
   turno: string;
-
   reportada_en: string;
-
   resuelta_en: string | null;
-
-  reportada_por_usuario_id?: number;
+  reportada_por_usuario_id: number;
 
   fotos: FotoDto[];
 
   maquina: {
+    id: number;
     codigo: string;
-
-    tipo_maquina: {
-      nombre: string;
-    };
-  };
+  } | null;
 }

@@ -7,13 +7,24 @@ export interface Pagina<T> {
 
 export interface IncidenciaDto {
   id: number;
+  maquina_id: number;
   descripcion: string;
-  estado: string; 
-  reportada_en: string; 
+  estado: string;
+  turno: string;
+  reportada_en: string;
+  resuelta_en: string | null;
+  reportada_por_usuario_id: number;
   maquina: {
+    id: number;
     codigo: string;
-    tipo_maquina: { nombre: string };
-  };
+  } | null;
+  fotos: {
+    id: number;
+    nombre_archivo: string | null;
+    tipo_mime: string;
+    capturada_en: string | null;
+    contenido_base64: string;
+  }[];
 }
 
 export interface AlertaStockDto {
