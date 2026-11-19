@@ -20,11 +20,17 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
 def _build_engine() -> AsyncEngine:
-    url = get_config().database.url
+    database = get_config().database
+    if database.DB_TYPE.lower() in ("sqlite", "sqlite3") and database.DB_DRIVER not in ("", "aiosqlite"):
+        raise ValueError(
+            f"Driver SQLite inválido: {database.DB_DRIVER!r}. "
+            'Dejá DB_DRIVER vacío o configurá "aiosqlite" en la sección [database].'
+        )
+    url = database.url
     connect_args = {}
     if url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
-        db_name = get_config().database.DB_NAME
+        db_name = database.DB_NAME
         if db_name != SQLITE_MEMORY_MODE:
             from pathlib import Path
             Path(db_name).parent.mkdir(parents=True, exist_ok=True)
@@ -40,7 +46,11 @@ def _build_engine() -> AsyncEngine:
             event.listen(engine.sync_engine, "connect", _activar_claves_foraneas)
         return engine
     except Exception as e:
-        raise RuntimeError("Cannot create database engine") from e
+        raise RuntimeError(
+            f"No se pudo crear el motor de base de datos "
+            f"(tipo: {database.DB_TYPE!r}, driver: {database.DB_DRIVER!r}, "
+            f"error: {type(e).__name__}). Revisá la configuración y las dependencias."
+        ) from e
 
 
 def _activar_claves_foraneas(connection, _record) -> None:

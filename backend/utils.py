@@ -15,15 +15,11 @@ __loaded = False
 
 
 def _config_path(config_file: str | Path) -> Path:
+    if isinstance(config_file, str) and config_file in {"default", "config"}:
+        return Path(__file__).resolve().parent / "config.toml"
     path = Path(config_file)
-    if path.exists():
-        return path
-    if isinstance(config_file, str):
-        if config_file in {"default", "config"}:
-            return Path("config.toml")
-        if path.suffix:
-            return path
-        return Path(f"config.{config_file}.toml")
+    if isinstance(config_file, str) and path.name == config_file and not path.suffix:
+        return Path(__file__).resolve().parent / f"config.{config_file}.toml"
     return path
 
 
@@ -36,7 +32,7 @@ def _with_runtime_metadata(loaded: Config, path: Path) -> Config:
     )
 
 
-def load_config(config_file: str | Path = "config.toml", reload: bool = False) -> Config:
+def load_config(config_file: str | Path = "default", reload: bool = False) -> Config:
     """Load and validate a configuration through ``Config.maker``."""
     global config, __loaded
 
@@ -45,6 +41,8 @@ def load_config(config_file: str | Path = "config.toml", reload: bool = False) -
         return config
 
     try:
+        if not path.is_file():
+            raise FileNotFoundError(f"No existe el archivo de configuración: {path}")
         loaded = Config.maker.load(path=path)
         config = _with_runtime_metadata(loaded, path)
         __loaded = True
