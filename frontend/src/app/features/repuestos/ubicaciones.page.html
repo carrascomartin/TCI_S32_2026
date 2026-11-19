@@ -23,10 +23,8 @@
               formControlName="codigo"
               autocomplete="off"
               [placeholder]="config.codigoPlaceholder"
-              aria-describedby="codigo-ayuda"
               [attr.aria-invalid]="codigoInvalido()"
             />
-            <p id="codigo-ayuda" class="text-xs text-muted-foreground">{{ config.codigoAyuda }}</p>
             @if (codigoInvalido()) {
               <p class="text-sm text-destructive">{{ config.requerido }}</p>
             }

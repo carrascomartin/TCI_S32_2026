@@ -59,7 +59,6 @@ export const REPUESTOS_CONFIG = {
     nueva: 'Nueva ubicación',
     codigo: 'Código',
     codigoPlaceholder: 'Ej.: A-03-12',
-    codigoAyuda: 'Estante, fila y nivel.',
     descripcionCampo: 'Descripción (opcional)',
     descripcionPlaceholder: 'Ej.: Estante A, fila 3, nivel 12',
     requerido: 'El código es obligatorio.',
