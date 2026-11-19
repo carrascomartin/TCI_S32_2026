@@ -97,6 +97,8 @@ Esto levanta:
 
 Para pararlo: `docker compose down` desde la raíz del repo.
 
+Los datos del backend (SQLite) quedan en el volumen `backend-data`: `docker compose down` los conserva y `docker compose down -v` los borra. Por qué el compose usa SQLite y qué cambia para pasar a PostgreSQL: [`docs/M6-adr-sqlite-o-postgres.md`](docs/M6-adr-sqlite-o-postgres.md).
+
 > **En Mac con Colima:** si `docker compose up` falla porque el daemon no responde, asegurate de que Colima esté corriendo (`colima start`). Si `colima start` falla con `failed to attach disk "colima", in use by instance "colima"`, un simple `colima stop && colima start` no siempre alcanza — en ese caso `colima delete` (recrea la VM desde cero, perdés las imágenes cacheadas) seguido de `colima start` lo resuelve.
 
 Detalle de cada subproyecto por separado (sin Docker) en `backend/README.md` y `frontend/README.md`.
