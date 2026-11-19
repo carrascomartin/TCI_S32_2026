@@ -87,7 +87,7 @@
                         >{{ codigoIncidencia(inc.id) }}</span
                       >
                     </td>
-                    <td>{{ hace(inc.reportada_en) }}</td>
+                    <td><time [attr.datetime]="inc.reportada_en">{{ hace(inc.reportada_en) }}</time></td>
                     <td>
                       <span hlmBadge [variant]="estado(inc.estado).variante">{{
                         estado(inc.estado).etiqueta

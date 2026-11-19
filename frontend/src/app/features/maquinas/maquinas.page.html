@@ -170,7 +170,7 @@
                       {{ estado(maquina.estado).etiqueta }}
                     </span>
                   </td>
-                  <td>{{ fecha(maquina.fecha_instalacion) }}</td>
+                  <td>@if (maquina.fecha_instalacion) { <time [attr.datetime]="maquina.fecha_instalacion">{{ fecha(maquina.fecha_instalacion) }}</time> } @else { {{ config.detalle.noInformado }} }</td>
                   <td>
                     <a hlmBtn size="sm" variant="outline" [routerLink]="['/maquinas', maquina.id]">
                       Ver detalle →
