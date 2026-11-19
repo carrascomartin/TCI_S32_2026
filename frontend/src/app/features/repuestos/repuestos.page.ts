@@ -42,6 +42,7 @@ const normalizar = (texto: string): string =>
     SearchComponent,
   ],
   templateUrl: './repuestos.page.html',
+  styleUrl: './repuestos.page.css',
 })
 export class RepuestosPage {
   private readonly servicio = inject(RepuestosService);
@@ -57,6 +58,13 @@ export class RepuestosPage {
   protected readonly cifra = cifra;
   protected readonly maquinas = maquinasCompatibles;
   protected readonly ubicaciones = codigosUbicacion;
+
+  protected detalleMinimo(repuesto: RepuestoDto): string {
+    const faltante = Math.max(0, repuesto.stock_minimo - repuesto.stock_disponible_total);
+    return faltante === 0
+      ? 'No hay unidades por debajo del mínimo.'
+      : `${faltante} ${faltante === 1 ? 'unidad' : 'unidades'} por debajo del mínimo.`;
+  }
 
   protected readonly repuestos = signal<RepuestoDto[]>([]);
   protected readonly carga = signal<Carga>('cargando');
