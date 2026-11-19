@@ -10,6 +10,10 @@ export const ROLES_LECTURA_PLANTA = [
   'gerencia_administracion',
 ];
 
+/** Acordado con el equipo: solo el operario reporta incidencias; todos los roles las consultan. */
+export const ROLES_REPORTE_INCIDENCIA = ['operario_maquina'];
+export const ROLES_CONSULTA_INCIDENCIAS = ['operario_maquina', ...ROLES_LECTURA_PLANTA];
+
 export function tieneAlgunRol(roles: string[], permitidos: string[]): boolean {
   return roles.some((rol) => permitidos.includes(rol.toLowerCase()));
 }

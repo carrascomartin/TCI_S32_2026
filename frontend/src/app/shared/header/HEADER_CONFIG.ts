@@ -1,4 +1,8 @@
-import { ROLES_LECTURA_PLANTA } from '../../core/auth/roles.guard';
+import {
+  ROLES_CONSULTA_INCIDENCIAS,
+  ROLES_LECTURA_PLANTA,
+  ROLES_REPORTE_INCIDENCIA,
+} from '../../core/auth/roles.guard';
 
 /** Cada módulo indica qué roles lo ven; sin `roles`, lo ven todos. */
 export const HEADER_CONFIG = {
@@ -8,6 +12,8 @@ export const HEADER_CONFIG = {
   },
   navigation: [
     { label: 'Inicio', href: '/inicio' },
+    { label: 'Reportar incidencia', href: '/incidencias/nueva', roles: ROLES_REPORTE_INCIDENCIA },
+    { label: 'Incidencias', href: '/incidencias', roles: ROLES_CONSULTA_INCIDENCIAS },
     { label: 'Máquinas', href: '/maquinas', roles: ROLES_LECTURA_PLANTA },
     { label: 'Repuestos', href: '/stock', roles: ROLES_LECTURA_PLANTA },
     { label: 'Ubicaciones', href: '/ubicaciones', roles: ROLES_LECTURA_PLANTA },
