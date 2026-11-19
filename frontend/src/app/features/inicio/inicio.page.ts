@@ -80,7 +80,7 @@ export class InicioPage {
   }
 
   protected nombreMaquina(incidencia: IncidenciaDto): string {
-    return `${incidencia.maquina.tipo_maquina.nombre} ${incidencia.maquina.codigo}`;
+    return incidencia.maquina?.codigo ?? `Máquina ${incidencia.maquina_id}`;
   }
 
   /** La API devuelve un id numérico; se muestra como INC-0248. */
