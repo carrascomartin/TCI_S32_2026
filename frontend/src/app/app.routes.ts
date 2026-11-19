@@ -2,6 +2,8 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
 import { authGuard } from './core/auth/auth.guard';
+import { ROLES_LECTURA_PLANTA, rolGuard } from './core/auth/roles.guard';
+import { ROLES_ESCRITURA } from './features/repuestos/repuestos.models';
 import { InicioHttpService } from './features/inicio/inicio.http.service';
 import { InicioService } from './features/inicio/inicio.service';
 import { MockInicioService } from './features/inicio/mock-inicio.service';
@@ -45,6 +47,7 @@ export const routes: Routes = [
 
       {
         path: 'stock',
+        canActivate: [rolGuard(ROLES_LECTURA_PLANTA)],
         providers: [
           {
             provide: RepuestosService,
@@ -63,12 +66,14 @@ export const routes: Routes = [
           },
           {
             path: 'nuevo',
+            canActivate: [rolGuard(ROLES_ESCRITURA)],
             title: 'Nuevo repuesto · TCI',
             loadComponent: () =>
               import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
           },
           {
             path: ':id/editar',
+            canActivate: [rolGuard(ROLES_ESCRITURA)],
             title: 'Editar repuesto · TCI',
             loadComponent: () =>
               import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
@@ -86,6 +91,7 @@ export const routes: Routes = [
 
       {
         path: 'ubicaciones',
+        canActivate: [rolGuard(ROLES_LECTURA_PLANTA)],
         title: 'Ubicaciones · TCI',
         providers: [
           {
@@ -102,6 +108,7 @@ export const routes: Routes = [
 
       {
         path: 'reposicion',
+        canActivate: [rolGuard(ROLES_LECTURA_PLANTA)],
         providers: [
           {
             provide: RepuestosService,
@@ -119,6 +126,7 @@ export const routes: Routes = [
 
       {
         path: 'compras',
+        canActivate: [rolGuard(ROLES_LECTURA_PLANTA)],
         providers: [
           {
             provide: RepuestosService,
@@ -134,6 +142,7 @@ export const routes: Routes = [
 
       {
         path: 'maquinas',
+        canActivate: [rolGuard(ROLES_LECTURA_PLANTA)],
         providers: [
           {
             provide: MaquinasService,
