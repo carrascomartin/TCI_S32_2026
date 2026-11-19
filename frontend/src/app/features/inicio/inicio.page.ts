@@ -32,6 +32,7 @@ type Carga = 'cargando' | 'listo' | 'error';
     DataTableComponent,
   ],
   templateUrl: './inicio.page.html',
+  styleUrl: './inicio.page.css',
 })
 export class InicioPage {
   private readonly servicio = inject(InicioService);

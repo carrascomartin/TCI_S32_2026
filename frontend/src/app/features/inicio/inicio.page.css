@@ -1,0 +1,17 @@
+.repuestos-card {
+  container-type: inline-size;
+}
+
+.repuestos-tabla {
+  display: none;
+}
+
+@container (min-width: 32rem) {
+  .repuestos-lista {
+    display: none;
+  }
+
+  .repuestos-tabla {
+    display: block;
+  }
+}
