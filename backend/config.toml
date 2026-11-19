@@ -8,9 +8,10 @@
     RESTRICTED_MODULES = []
 
 [secrets]
-    SECRET_KEY = "123456"
-    # Completar en cada config.<environment>.toml antes de habilitar JWT local.
-    CLAVE_JWT = ""
+    # Las claves no se versionan: se leen de variables de entorno (README, "Claves y variables
+    # de entorno"). Si las definís acá, el archivo gana sobre la variable.
+    #   SECRET_KEY <- AUTOCONFIG_SECRETS__SECRET_KEY  obligatoria, al menos 32 bytes
+    #   CLAVE_JWT  <- AUTOCONFIG_SECRETS__CLAVE_JWT   obligatoria con JWT local, 32 bytes en HS256
 
 [database]
     DB_TYPE = "sqlite3"
