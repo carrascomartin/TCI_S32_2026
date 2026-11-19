@@ -130,6 +130,26 @@ def _set_environment_value(target: dict[str, Any], parts: list[str], value: Any)
                 current = current[key]
 
 
+def _match_field_names(model_type: Type[Any], data: dict[str, Any]) -> dict[str, Any]:
+    """Renombra las claves de ``data`` al nombre real de cada campo, sin distinguir mayúsculas.
+
+    Las variables de entorno se leen en minúsculas, pero los campos de una sección pueden
+    estar en mayúsculas (``SECRET_KEY``): sin este paso, el modelo los rechaza como campos
+    extra. Una clave que no coincide con ningún campo se deja como está y la validación del
+    modelo la rechaza.
+    """
+    fields = model_type.model_fields
+    matched: dict[str, Any] = {}
+    for key, value in data.items():
+        name = next((field for field in fields if field.lower() == key.lower()), key)
+        if name in fields and isinstance(value, dict):
+            annotation = unwrap_type(fields[name].annotation)
+            if is_section_type(annotation):
+                value = _match_field_names(annotation, value)
+        matched[name] = value
+    return matched
+
+
 def _environment_data(
     definition: Type[ConfigurationDefinition],
     environ: Mapping[str, str],
@@ -145,7 +165,7 @@ def _environment_data(
             continue
         parts = field_path.split(delimiter)
         _set_environment_value(result, parts, _decode_environment_value(value))
-    return result
+    return _match_field_names(definition, result)
 
 
 class ConfigMaker(Generic[T]):
