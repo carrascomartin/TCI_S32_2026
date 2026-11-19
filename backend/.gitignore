@@ -4,5 +4,6 @@ __pycache__
 *.log
 
 config.*.toml
+!config.docker.toml
 .env
 .env.*

@@ -1,0 +1,107 @@
+# Configuración del backend dentro de Docker Compose: igual a config.toml salvo
+# la sección [database], que apunta a PostgreSQL. Compose la monta como
+# /app/config.toml, así que app.py, datos_prueba.py y gestionar_acceso.py la usan
+# sin indicar --config. Un test verifica que no se aparte de config.toml.
+
+# Archivo de configuración de plantilla, crear un config.{env}.toml para cada env que quieras (dev, prod, xxx)
+[server]
+    HOST = "localhost"
+    VERSION = '1.0.0'
+    PORT = 8300
+    DEBUG = false
+    CORS_URLS = ["localhost", "0.0.0.0", "192.168.100.84"]
+    RESTRICTED_MODULES = []
+
+[secrets]
+    # Las claves no se versionan: se leen de variables de entorno (README, "Claves y variables
+    # de entorno"). Si las definís acá, el archivo gana sobre la variable.
+    #   SECRET_KEY <- AUTOCONFIG_SECRETS__SECRET_KEY  obligatoria, al menos 32 bytes
+    #   CLAVE_JWT  <- AUTOCONFIG_SECRETS__CLAVE_JWT   obligatoria con JWT local, 32 bytes en HS256
+
+[database]
+    # PostgreSQL del servicio db de docker-compose.yml. DB_PASSWORD no va acá:
+    # llega por AUTOCONFIG_DATABASE__DB_PASSWORD desde el .env (ver README).
+    DB_TYPE = "postgresql"
+    DB_DRIVER = "asyncpg"
+    DB_USER = "tci"
+    DB_HOST = "db"
+    DB_PORT = 5432
+    DB_NAME = "tci"
+
+[logs]
+    LOGS_LEVEL = 10
+    LOGS_FILE = "app.log"
+    LOGS_DIR = "logs"
+    LOGS_FORMAT = "[%(levelname)s] -> [%(asctime)s]: %(message)s"
+    LOGS_DATE_FORMAT = "%Y-%m-%d %H:%M"
+
+[auth]
+    ENABLED = true
+    TOKEN_TTL_MINUTES = 1440
+    TOKEN_SALT = "auth-token"
+    SESSION_COOKIE_NAME = "session"
+    SESSION_MAX_AGE_SECONDS = 86400
+    SESSION_SAME_SITE = "lax"
+    SESSION_HTTPS_ONLY = false
+
+    [auth.OAUTH]
+        ENABLED = false
+        PROVIDER = "generic"
+        CLIENT_ID = ""
+        CLIENT_SECRET = ""
+        AUTHORIZE_URL = ""
+        TOKEN_URL = ""
+        USERINFO_URL = ""
+        REDIRECT_URI = "http://localhost:8300/auth/oauth/callback"
+        SCOPES = ["openid", "email", "profile"]
+        USE_PKCE = true
+
+    # Header-based authentication: Authorization: Bearer <access-token>
+    # Keep this disabled until the realm and API client are configured.
+    [auth.KEYCLOAK]
+        ENABLED = false
+        URL = "http://localhost:8080"
+        REALM = "master"
+        CLIENT_ID = "api"
+        CLIENT_SECRET = ""
+        VERIFY = true
+        AUTHENTICATION_SCHEME = "Bearer"
+        VALIDATE_TOKEN = true
+        REJECT_ON_MISSING_CLAIM = false
+        CLAIMS = [
+            "sub",
+            "name",
+            "family_name",
+            "given_name",
+            "preferred_username",
+            "email",
+            "email_verified",
+            "iss",
+            "aud",
+            "azp",
+            "realm_access",
+            "resource_access",
+            "groups",
+            "scope",
+            "permissions",
+        ]
+        EXCLUDE_PATTERNS = ["^/$", "^/health$", "^/docs$", "^/openapi.json$", "^/redoc$"]
+        ADD_SWAGGER_AUTH = false
+        SWAGGER_CLIENT_ID = ""
+
+    # JWT local y roles guardados en la base de datos. No habilitar junto con Keycloak.
+    [auth.JWT]
+        # Desactivado por defecto. Se activa sin tocar este archivo con
+        # AUTOCONFIG_AUTH__JWT__HABILITADO=true (docker-compose.yml ya lo hace). Si lo definís
+        # acá con HABILITADO = true/false, el archivo gana sobre la variable.
+        DURACION_TOKEN_MINUTOS = 30
+        ALGORITMO = "HS256"
+        ALGORITMOS_PERMITIDOS = ["HS256", "HS384", "HS512"]
+        RUTAS_EXCLUIDAS = [
+            "^/$",
+            "^/health$",
+            "^/docs(?:/.*)?$",
+            "^/redoc(?:/.*)?$",
+            "^/openapi\\.json$",
+            "^/auth/token$",
+        ]
