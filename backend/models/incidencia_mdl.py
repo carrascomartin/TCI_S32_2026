@@ -1,49 +1,99 @@
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from typing import Literal
+
+from pydantic import AliasChoices, Field, PositiveInt
+
+from .catalogo_mdl import MaquinaResponseDto, RepuestoResumenDto
+from .common_mdl import RequestDto, ResponseDto
 
 
-class FotoIncidenciaCreateDto(BaseModel):
-    contenido_base64: str
-    nombre_archivo: Optional[str] = None
-    tipo_mime: str
-    capturada_en: Optional[datetime] = None
+TurnoDto = Literal["manana", "tarde", "noche"]
 
 
-class FotoIncidenciaDto(BaseModel):
+class FotoIncidenciaDto(ResponseDto):
     id: int
-    nombre_archivo: Optional[str] = None
+    nombre_archivo: str | None = None
     tipo_mime: str
-    capturada_en: Optional[datetime] = None
+    capturada_en: datetime | None = None
     contenido_base64: str
 
-    class Config:
-        from_attributes = True
+
+class FotoIncidenciaCreateDto(RequestDto):
+    contenido_base64: str = Field(min_length=1)
+    nombre_archivo: str | None = Field(default=None, max_length=255)
+    tipo_mime: str = Field(min_length=1, max_length=100)
+    capturada_en: datetime | None = None
 
 
-class IncidenciaCreateDto(BaseModel):
-    maquina_codigo: str = Field(max_length=100, min_length=1)
+class IncidenciaCreateDto(RequestDto):
+    maquina_codigo: str = Field(min_length=1, max_length=100, description="Código QR o de barras.")
     descripcion: str = Field(min_length=1)
-    turno: str
-    fotos: Optional[List[FotoIncidenciaCreateDto]] = []
+    turno: TurnoDto
+    fotos: list[FotoIncidenciaCreateDto] = Field(default_factory=list)
 
 
-class MaquinaIncidenciaDto(BaseModel):
-    id: int
-    codigo: str
-
-
-class IncidenciaResponseDto(BaseModel):
+class IncidenciaResponseDto(ResponseDto):
     id: int
     maquina_id: int
-    maquina: Optional[MaquinaIncidenciaDto] = None
+    maquina: MaquinaResponseDto = Field(
+        validation_alias=AliasChoices("maquina", "machine")
+    )
     reportada_por_usuario_id: int
     descripcion: str
-    estado: str
-    turno: str
+    estado: str = Field(description="Valores sujetos a la máquina de estados T01.")
+    turno: TurnoDto
     reportada_en: datetime
-    resuelta_en: Optional[datetime] = None
-    fotos: List[FotoIncidenciaDto] = []
+    resuelta_en: datetime | None = None
+    fotos: list[FotoIncidenciaDto] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("fotos", "photos"),
+    )
 
-    class Config:
-        from_attributes = True
+
+class UsoRepuestoCreateDto(RequestDto):
+    repuesto_id: PositiveInt
+    cantidad: PositiveInt
+    ubicacion_id: PositiveInt | None = Field(
+        default=None,
+        description="Ubicación preferida para descontar stock. Si se omite, el servicio define la asignación.",
+    )
+
+
+class UsoRepuestoResponseDto(ResponseDto):
+    id: int
+    reparacion_id: int
+    repuesto: RepuestoResumenDto = Field(
+        validation_alias=AliasChoices("repuesto", "spare_part")
+    )
+    cantidad: PositiveInt
+    usada_por_usuario_id: int
+    usada_en: datetime
+
+
+class InformeResolucionCreateDto(RequestDto):
+    resumen: str = Field(min_length=1)
+
+
+class InformeResolucionResponseDto(ResponseDto):
+    id: int
+    reparacion_id: int
+    empleado_id: int
+    resumen: str
+    creada_en: datetime
+
+
+class ReparacionResponseDto(ResponseDto):
+    id: int
+    incidencia_id: int
+    empleado_id: int | None = None
+    estado: str = Field(description="Estado sujeto a la máquina de estados del dominio.")
+    iniciada_en: datetime | None = None
+    completada_en: datetime | None = None
+    usos: list[UsoRepuestoResponseDto] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("usos", "part_usages"),
+    )
+    informe_resolucion: InformeResolucionResponseDto | None = Field(
+        default=None,
+        validation_alias=AliasChoices("informe_resolucion", "resolution_report"),
+    )
