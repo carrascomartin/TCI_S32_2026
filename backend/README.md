@@ -335,3 +335,44 @@ Para crear un usuario individual:
 ```bash
 docker compose exec backend uv run --no-dev gestionar_acceso.py crear-usuario --rol operario_maquina
 ```
+
+## Base de prueba
+
+Para probar los endpoints contra datos reales, sin los mocks del frontend, se
+puede cargar una base de prueba con datos del dominio. Con el backend iniciado
+en Docker, ejecutar desde la raíz:
+
+```bash
+docker compose exec backend uv run --no-dev datos_prueba.py cargar --contrasena <contraseña>
+```
+
+Fuera de Docker, desde `backend/`:
+
+```bash
+uv run python datos_prueba.py cargar --contrasena <contraseña>
+```
+
+La contraseña se usa solo para los usuarios de prueba que falten y también se
+puede pasar con la variable `TCI_CONTRASENA_PRUEBA`; si no se indica, se pide
+sin mostrarla. Los usuarios existentes, como los de `preparar-demo`, se
+reutilizan sin cambiar su contraseña. Se cargan:
+
+- Un usuario por rol (`operario@demo.invalid`, `empleado@demo.invalid`,
+  `encargado@demo.invalid` y `gerencia@demo.invalid`) y un segundo operario
+  (`operario2@demo.invalid`).
+- Las máquinas, ubicaciones y repuestos de los fixtures del frontend, con la
+  compatibilidad de cada repuesto por tipo de máquina.
+- Stock por ubicación que coincide con sus movimientos: carga inicial,
+  recepciones, consumos en reparaciones y una reserva planificada. Algunos
+  repuestos quedan en el umbral mínimo o por debajo, para probar las alertas.
+- Incidencias en cada estado, con sus reparaciones, usos e informes de
+  resolución, y pedidos de compra en cada estado.
+
+Si la base ya tiene máquinas o repuestos, el comando no carga nada. Para
+volver a los datos iniciales, `--reiniciar` borra las máquinas, el stock, las
+incidencias, las compras y las reservas, sin tocar usuarios ni roles. Pide
+confirmación, salvo que se agregue `--si`:
+
+```bash
+docker compose exec backend uv run --no-dev datos_prueba.py cargar --reiniciar --si
+```
