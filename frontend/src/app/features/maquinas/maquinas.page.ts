@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 import { ESTADOS_MAQUINA, MAQUINAS_CONFIG } from './maquinas.config';
 import { MaquinaDto, TipoMaquinaDto } from './maquinas.models';
 import { MaquinasService } from './maquinas.service';
+import { CampoOrden, DireccionOrden, ordenarMaquinas } from './maquinas-orden';
 
 type Carga = 'cargando' | 'listo' | 'error';
 
@@ -42,6 +43,8 @@ export class MaquinasPage {
   protected readonly busqueda = signal('');
   protected readonly tipoSeleccionado = signal('');
   protected readonly estadoSeleccionado = signal('');
+  protected readonly campoOrden = signal<CampoOrden>('estado');
+  protected readonly direccionOrden = signal<DireccionOrden>('asc');
   protected readonly tiposDisponibles = signal<TipoMaquinaDto[]>([]);
   protected readonly mensajeFormulario = signal('');
   protected readonly guardando = signal(false);
@@ -73,7 +76,7 @@ export class MaquinasPage {
     const tipo = this.tipoSeleccionado();
     const estado = this.estadoSeleccionado();
 
-    return this.maquinas().filter((maquina) => {
+    const filtradas = this.maquinas().filter((maquina) => {
       const coincideTipo = !tipo || String(maquina.tipo_maquina_id) === tipo;
       const coincideEstado = !estado || maquina.estado === estado;
       const coincideBusqueda =
@@ -87,7 +90,17 @@ export class MaquinasPage {
 
       return coincideTipo && coincideEstado && coincideBusqueda;
     });
+    return ordenarMaquinas(filtradas, this.campoOrden(), this.direccionOrden());
   });
+
+  protected ordenar(campo: CampoOrden): void {
+    if (this.campoOrden() === campo) {
+      this.direccionOrden.update((direccion) => direccion === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.campoOrden.set(campo);
+      this.direccionOrden.set('asc');
+    }
+  }
 
   constructor() {
     this.cargar();
