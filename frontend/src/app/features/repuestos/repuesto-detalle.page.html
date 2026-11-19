@@ -19,7 +19,14 @@
             <p class="mt-2 text-muted-foreground">{{ r.descripcion }}</p>
           }
         </div>
-        <span hlmBadge [variant]="info(r).variante">{{ info(r).etiqueta }}</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span hlmBadge [variant]="info(r).variante">{{ info(r).etiqueta }}</span>
+          @if (puedeEditar()) {
+            <a hlmBtn variant="outline" size="sm" [routerLink]="['/stock', r.id, 'editar']">
+              {{ config.detalle.editar }}
+            </a>
+          }
+        </div>
       </header>
 
       <section hlmCard aria-labelledby="existencias-titulo">

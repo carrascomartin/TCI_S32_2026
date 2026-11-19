@@ -1,0 +1,105 @@
+<div class="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
+  <a [routerLink]="id ? ['/stock', id] : '/stock'" class="text-sm font-medium">
+    <span aria-hidden="true">←</span> {{ config.detalle.volver }}
+  </a>
+
+  <header>
+    <h1 class="text-3xl font-semibold">
+      {{ id ? config.formulario.tituloEditar : config.formulario.tituloNuevo }}
+    </h1>
+    @if (!id) {
+      <p class="mt-2 text-muted-foreground">{{ config.formulario.descripcion }}</p>
+    }
+    @if (esDemo) {
+      <p role="note" class="mt-2 text-sm text-muted-foreground">{{ config.demo }}</p>
+    }
+  </header>
+
+  @if (carga() === 'cargando') {
+    <p role="status" class="text-sm text-muted-foreground">{{ config.detalle.cargando }}</p>
+  } @else if (carga() === 'error') {
+    <div role="alert" class="flex flex-col items-start gap-3">
+      <p class="text-sm">{{ config.detalle.error }}</p>
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="cargar()">{{ config.reintentar }}</button>
+    </div>
+  } @else {
+    <section hlmCard>
+      <div hlmCardContent>
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-4" novalidate>
+          <div class="flex flex-col gap-2">
+            <label hlmLabel for="codigo">{{ config.formulario.codigo }}</label>
+            <input
+              hlmInput
+              id="codigo"
+              formControlName="codigo"
+              autocomplete="off"
+              [placeholder]="config.formulario.codigoPlaceholder"
+              [attr.aria-invalid]="invalido('codigo')"
+            />
+            @if (invalido('codigo')) {
+              <p class="text-sm text-destructive">{{ config.formulario.requerido }}</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label hlmLabel for="nombre">{{ config.formulario.nombre }}</label>
+            <input
+              hlmInput
+              id="nombre"
+              formControlName="nombre"
+              [placeholder]="config.formulario.nombrePlaceholder"
+              [attr.aria-invalid]="invalido('nombre')"
+            />
+            @if (invalido('nombre')) {
+              <p class="text-sm text-destructive">{{ config.formulario.requerido }}</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label hlmLabel for="descripcion">{{ config.formulario.descripcionCampo }}</label>
+            <textarea hlmInput id="descripcion" formControlName="descripcion" rows="3"></textarea>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label hlmLabel for="stock_minimo">{{ config.formulario.minimo }}</label>
+            <input
+              hlmInput
+              id="stock_minimo"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              formControlName="stock_minimo"
+              aria-describedby="minimo-ayuda"
+              [attr.aria-invalid]="invalido('stock_minimo')"
+            />
+            <p id="minimo-ayuda" class="text-xs text-muted-foreground">{{ config.formulario.minimoAyuda }}</p>
+            @if (invalido('stock_minimo')) {
+              <p class="text-sm text-destructive">{{ config.formulario.minimoInvalido }}</p>
+            }
+          </div>
+
+          @if (id) {
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" formControlName="activo" />
+              {{ config.formulario.activo }}
+            </label>
+          }
+
+          @if (error(); as mensaje) {
+            <p role="alert" class="text-sm text-destructive">{{ mensaje }}</p>
+          }
+
+          <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <a hlmBtn variant="outline" [routerLink]="id ? ['/stock', id] : '/stock'">
+              {{ config.formulario.cancelar }}
+            </a>
+            <button hlmBtn type="submit" [disabled]="guardando()">
+              {{ guardando() ? config.formulario.guardando : config.formulario.guardar }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+</div>

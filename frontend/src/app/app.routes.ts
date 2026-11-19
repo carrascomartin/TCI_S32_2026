@@ -81,6 +81,18 @@ export const routes: Routes = [
               import('./features/repuestos/repuestos.page').then((page) => page.RepuestosPage),
           },
           {
+            path: 'nuevo',
+            title: 'Nuevo repuesto · TCI',
+            loadComponent: () =>
+              import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
+          },
+          {
+            path: ':id/editar',
+            title: 'Editar repuesto · TCI',
+            loadComponent: () =>
+              import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
+          },
+          {
             path: ':id',
             title: 'Detalle de repuesto · TCI',
             loadComponent: () =>
@@ -89,6 +101,22 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+
+      {
+        path: 'ubicaciones',
+        title: 'Ubicaciones · TCI',
+        providers: [
+          {
+            provide: RepuestosService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockRepuestosService)
+                : inject(RepuestosHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/repuestos/ubicaciones.page').then((page) => page.UbicacionesPage),
       },
 
       {
