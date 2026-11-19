@@ -16,7 +16,7 @@ Decidido en el ADR `docs/T06-adr-arquitectura.md` (aprobado por el profesor), **
 - Frontend: **Angular 21** + TypeScript (no React).
 - Backend: **FastAPI** + Python 3.14, gestor de paquetes **uv** (no pip/poetry).
 - Persistencia: **SQLAlchemy** con DTOs separados (no SQLModel).
-- Base de datos: SQLite en desarrollo (`aiosqlite`), PostgreSQL como objetivo. Por qué el compose usa SQLite y qué cambia para pasar a PostgreSQL: `docs/M6-adr-sqlite-o-postgres.md`.
+- Base de datos: PostgreSQL 16 en Docker Compose (`asyncpg`, servicio `db`, configuración en `backend/config.docker.toml`). SQLite (`aiosqlite`) sin Docker y en los tests. Decisión y diferencias entre motores: `docs/M6-adr-sqlite-o-postgres.md`.
 
 ## Convenciones de Git
 
