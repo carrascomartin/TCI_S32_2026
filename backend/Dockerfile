@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir uv
 
 # Capa de dependencias separada del código para aprovechar la cache de Docker.
 COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev
+RUN uv sync --no-dev --no-install-project
 
 COPY . .
 

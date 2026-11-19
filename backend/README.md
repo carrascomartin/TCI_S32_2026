@@ -286,7 +286,7 @@ uv run python gestionar_acceso.py reemplazar-roles 1 --rol encargado_mantenimien
 
 | Flag | Descripción |
 |---|---|
-| `-c`, `--config` | Nombre del archivo de config a cargar (default: `default`) |
+| `-c`, `--config` | Nombre del entorno (por ejemplo `dev` carga `backend/config.dev.toml`; default: `default`) |
 | `-p`, `--port` | Puerto del servidor |
 | `-H`, `--host` | Host del servidor |
 | `-d`, `--debug` | Activa modo debug |
@@ -359,9 +359,9 @@ docker compose exec backend uv run --no-dev gestionar_acceso.py preparar-demo
 
 El comando solicita una contraseña por usuario, sin mostrarla. Crea los roles
 `operario_maquina`, `empleado_mantenimiento`, `encargado_mantenimiento` y
-`gerencia_administracion` y las cuentas `operario@demo.invalid`,
-`empleado@demo.invalid`, `encargado@demo.invalid` y
-`gerencia@demo.invalid`. Al repetirlo conserva las cuentas y contraseñas
+`gerencia_administracion` y las cuentas `operario@test`,
+`empleado@test`, `encargado@test` y
+`gerencia@test`. Al repetirlo conserva las cuentas y contraseñas
 existentes. Si una cuenta existente no tiene el rol esperado, finaliza con
 error para que se revise su asignación.
 
@@ -383,36 +383,74 @@ puede cargar una base de prueba con datos del dominio. Con el backend iniciado
 en Docker, ejecutar desde la raíz:
 
 ```bash
-docker compose exec backend uv run --no-dev datos_prueba.py cargar --contrasena <contraseña>
+docker compose exec backend uv run --no-dev python datos_prueba.py
 ```
 
 Fuera de Docker, desde `backend/` y con las variables de "Claves y variables de entorno" definidas:
 
 ```bash
-uv run python datos_prueba.py cargar --contrasena <contraseña>
+uv run python datos_prueba.py
 ```
 
-La contraseña se usa solo para los usuarios de prueba que falten y también se
-puede pasar con la variable `TCI_CONTRASENA_PRUEBA`; si no se indica, se pide
-sin mostrarla. Los usuarios existentes, como los de `preparar-demo`, se
-reutilizan sin cambiar su contraseña. Se cargan:
+También se puede usar el atajo `uv run crear-dummy-db`. Ambos comandos aceptan
+las mismas opciones, incluida `--config dummy`; la validación de secretos usa
+la configuración del entorno y es la misma para ambos.
 
-- Un usuario por rol (`operario@demo.invalid`, `empleado@demo.invalid`,
-  `encargado@demo.invalid` y `gerencia@demo.invalid`) y un segundo operario
-  (`operario2@demo.invalid`).
-- Las máquinas, ubicaciones y repuestos de los fixtures del frontend, con la
+El comando crea las tablas y carga los datos en la base indicada por `DB_NAME`
+en `config.toml` (por defecto, `backend/data/db.sqlite3`). Para usar otra
+configuración, agregar `--config dev` para usar `backend/config.dev.toml`. Al iniciar el backend,
+usar la misma configuración para consultar esa base.
+Por ejemplo, copiar `config.toml` a `config.dummy.toml`, cambiar `DB_NAME`
+en la sección `[database]` y ejecutar:
+
+```bash
+uv run python datos_prueba.py --config dummy
+```
+
+El comando muestra el destino sin incluir credenciales. Las rutas relativas de
+SQLite se resuelven desde el directorio de ejecución. Para PostgreSQL, configurar
+`DB_TYPE = "postgresql"`, `DB_DRIVER = "asyncpg"` y los parámetros de conexión;
+la base de datos debe existir previamente. El comando crea las tablas dentro de
+esa base, no crea la base PostgreSQL en el servidor. Este flujo aún requiere
+verificación de integración contra una instancia PostgreSQL.
+
+Para SQLite, si `DB_DRIVER` está vacío o no se especifica, se usa `aiosqlite`
+automáticamente.
+
+Los usuarios de prueba nuevos tienen la contraseña `test`; es una credencial
+conocida, exclusiva para entornos de prueba. Los usuarios existentes se
+reutilizan sin cambiar su contraseña y deben tener el rol esperado. Se cargan:
+
+- Un usuario por rol (`operario@test`, `empleado@test`,
+  `encargado@test` y `gerencia@test`) y un segundo operario
+  (`operario2@test`).
+- 18 máquinas, 10 ubicaciones y 13 repuestos, incluidos los fixtures del frontend, con la
   compatibilidad de cada repuesto por tipo de máquina.
 - Stock por ubicación que coincide con sus movimientos: carga inicial,
   recepciones, consumos en reparaciones y una reserva planificada. Algunos
   repuestos quedan en el umbral mínimo o por debajo, para probar las alertas.
-- Incidencias en cada estado, con sus reparaciones, usos e informes de
+- 19 incidencias en cinco estados, con sus reparaciones, usos e informes de
   resolución, y pedidos de compra en cada estado.
 
 Si la base ya tiene máquinas o repuestos, el comando no carga nada. Para
-volver a los datos iniciales, `--reiniciar` borra las máquinas, el stock, las
+volver a los datos iniciales, `--recreate` borra las máquinas, el stock, las
 incidencias, las compras y las reservas, sin tocar usuarios ni roles. Pide
 confirmación, salvo que se agregue `--si`:
 
 ```bash
-docker compose exec backend uv run --no-dev datos_prueba.py cargar --reiniciar --si
+uv run python datos_prueba.py --recreate
 ```
+
+La carga se ejecuta en orden desde `datos_prueba.py`. Sus etapas están en
+`dummy_db/` y cada archivo reúne los datos de ejemplo y su construcción:
+
+1. `paso_01_usuarios.py`: roles y usuarios.
+2. `paso_02_catalogo.py`: tipos, máquinas, ubicaciones y repuestos.
+3. `paso_03_incidencias.py`: incidencias, reparaciones y consumos.
+4. `paso_04_compras.py`: pedidos y recepciones.
+5. `paso_05_stock.py`: reservas, movimientos y existencias.
+
+Las etapas comparten una sesión y los cambios de datos se confirman juntos al
+final. Para cambiar una máquina de ejemplo, editar `MAQUINAS` en el paso 2;
+la definición de columnas de la tabla está en `db/db_models/catalogo.py`.
+Los correos `@test` son identificadores de prueba, no direcciones de entrega.

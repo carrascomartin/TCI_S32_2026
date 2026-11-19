@@ -26,6 +26,17 @@ dependencies = [
     "uvicorn>=0.47.0",
 ]
 
+[project.scripts]
+crear-dummy-db = "arranque_datos_prueba:ejecutar"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["autoconfig*", "dummy_db*", "db*", "models*", "services*"]
+exclude = ["tests*"]
+
 [dependency-groups]
 dev = [
     "pytest>=8,<10",

@@ -19,10 +19,10 @@ from utils import load_config
 aplicacion = typer.Typer(help="Aprovisiona usuarios y roles del backend.")
 
 USUARIOS_DEMO = (
-    ("operario_maquina", "Operario", "operario@demo.invalid"),
-    ("empleado_mantenimiento", "Empleado", "empleado@demo.invalid"),
-    ("encargado_mantenimiento", "Encargado", "encargado@demo.invalid"),
-    ("gerencia_administracion", "Gerencia", "gerencia@demo.invalid"),
+    ("operario_maquina", "Operario", "operario@test"),
+    ("empleado_mantenimiento", "Empleado", "empleado@test"),
+    ("encargado_mantenimiento", "Encargado", "encargado@test"),
+    ("gerencia_administracion", "Gerencia", "gerencia@test"),
 )
 
 
