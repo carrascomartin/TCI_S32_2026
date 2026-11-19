@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from config import Config
 from logs import get_logger
+from secretos import validar_secretos
 
 config: Config | None = None
 __loaded = False
@@ -46,12 +47,14 @@ def load_config(config_file: str | Path = "config.toml", reload: bool = False) -
 
     try:
         loaded = Config.maker.load(path=path)
-        config = _with_runtime_metadata(loaded, path)
-        __loaded = True
-        return config
     except Exception:
         get_logger().critical("Cannot load configuration file: %s", path)
         raise
+
+    validar_secretos(loaded)
+    config = _with_runtime_metadata(loaded, path)
+    __loaded = True
+    return config
 
 
 def get_config(path: str | None = None) -> Config:

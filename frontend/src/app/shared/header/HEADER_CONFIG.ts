@@ -7,6 +7,7 @@ export const HEADER_CONFIG = {
     { label: 'Inicio', href: '/inicio' },
     { label: 'Incidencias', href: '/incidencias' },
     { label: 'Repuestos', href: '/stock' },
+    { label: 'Ubicaciones', href: '/ubicaciones' },
     { label: 'Reposición', href: '/reposicion' },
     { label: 'Registrar uso', href: '/usos/nuevo' },
     { label: 'Compras', href: '/compras' },

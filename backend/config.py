@@ -54,7 +54,9 @@ class Database(ConfigurationSection):
 class Secrets(ConfigurationSection):
     """Application secrets."""
 
-    SECRET_KEY: str = config_field(secret=True)
+    # Sin valor en el archivo: se leen de variables de entorno y ``secretos.validar_secretos``
+    # exige que SECRET_KEY esté definida; el default vacío evita un error genérico de pydantic.
+    SECRET_KEY: str = config_field("", secret=True)
     CLAVE_JWT: str = config_field("", secret=True)
 
 
