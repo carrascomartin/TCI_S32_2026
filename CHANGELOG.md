@@ -18,6 +18,7 @@ Registro de cambios relevantes del proyecto. Formato basado en [Keep a Changelog
 
 ### Added
 
+- Endpoints de reservas del contrato v0 (`GET/POST /api/v0/reservas`, `GET /api/v0/reservas/{id}`, `POST /api/v0/reservas/{id}/liberacion` y `POST /api/v0/reservas/{id}/ejecucion`) según la máquina de estados de Reserva (T02): una reserva nace `activa` y termina `ejecutada` o `liberada`. Crear aparta stock solo si el disponible alcanza para todas las partidas; liberar exige rol encargado (RN-05); ejecutar descuenta lo consumido del stock físico y libera el resto en la misma transacción (RN-10). Cada cambio de existencias es una sentencia condicionada en la base y queda como movimiento de stock (issue #107). El estado inicial de `reservas` pasa de `planificada` a `activa` para coincidir con la máquina de estados.
 - `docker-compose.yml` en la raíz, con `Dockerfile` para `backend/` (Python 3.14 + uv) y `frontend/` (build de Angular servido con nginx). `docker compose up --build` levanta todo el stack desde un clone limpio (issue #29, M2). Verificado de punta a punta: backend responde `200` en `/health`, frontend responde `200` en `http://localhost:8080`.
 - `.dockerignore` en `backend/` y `frontend/` para no copiar `node_modules`, `.venv`, `dist` ni logs al build.
 - Sección "Cómo levantar el proyecto con Docker" en el README principal, más una sección de Docker en `backend/README.md` y `frontend/README.md`.
