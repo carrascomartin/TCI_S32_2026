@@ -379,14 +379,18 @@ puede cargar una base de prueba con datos del dominio. Con el backend iniciado
 en Docker, ejecutar desde la raíz:
 
 ```bash
-docker compose exec backend uv run --no-dev crear-dummy-db
+docker compose exec backend uv run --no-dev python datos_prueba.py
 ```
 
 Fuera de Docker, desde `backend/` y con las variables de "Claves y variables de entorno" definidas:
 
 ```bash
-uv run crear-dummy-db
+uv run python datos_prueba.py
 ```
+
+También se puede usar el atajo `uv run crear-dummy-db`. Ambos comandos aceptan
+las mismas opciones, incluida `--config dummy`; la validación de secretos usa
+la configuración del entorno y es la misma para ambos.
 
 El comando crea las tablas y carga los datos en la base indicada por `DB_NAME`
 en `config.toml` (por defecto, `backend/data/db.sqlite3`). Para usar otra
@@ -397,7 +401,7 @@ Por ejemplo, copiar `config.toml` a `config.dummy.toml`, cambiar `DB_NAME`
 en la sección `[database]` y ejecutar:
 
 ```bash
-uv run crear-dummy-db --config dummy
+uv run python datos_prueba.py --config dummy
 ```
 
 El comando muestra el destino sin incluir credenciales. Las rutas relativas de
@@ -431,7 +435,7 @@ incidencias, las compras y las reservas, sin tocar usuarios ni roles. Pide
 confirmación, salvo que se agregue `--si`:
 
 ```bash
-uv run crear-dummy-db --recreate
+uv run python datos_prueba.py --recreate
 ```
 
 La carga se ejecuta en orden desde `datos_prueba.py`. Sus etapas están en

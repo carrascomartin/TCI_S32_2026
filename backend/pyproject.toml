@@ -27,19 +27,19 @@ dependencies = [
 ]
 
 [project.scripts]
-crear-dummy-db = "datos_prueba:aplicacion"
+crear-dummy-db = "arranque_datos_prueba:ejecutar"
 
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-py-modules = ["datos_prueba", "autenticacion_jwt", "config", "logs", "utils"]
-
 [tool.setuptools.packages.find]
-include = ["autoconfig*", "dummy_db*", "db*", "models*", "services*"]
+exclude = ["tests*"]
 
 [dependency-groups]
 dev = [
     "pytest>=8,<10",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
