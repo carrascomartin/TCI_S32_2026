@@ -47,7 +47,6 @@ export class InicioPage {
   protected readonly soloLectura = false;
 
   constructor() {
-    this.cargarIncidencias();
     this.cargarAlertas();
   }
 
