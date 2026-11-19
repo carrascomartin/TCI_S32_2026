@@ -25,7 +25,7 @@ Estado actual de la capa de datos, que no cambia con esta decisión: SQLModel so
 - **Reproducibilidad de la entrega.** Hoy `docker compose up` levanta dos contenedores desde un clone limpio. PostgreSQL agrega un tercer servicio, una contraseña, un volumen y un orden de arranque (la base tiene que estar lista antes que el backend). Son más pasos que pueden fallar durante la entrega y la demo.
 - **Escala del problema.** El sistema es un prototipo con pocos usuarios y poca escritura simultánea. SQLite alcanza y no es el límite del sistema.
 - **No hay migraciones.** El esquema se crea al iniciar y no hay Alembic. Con datos que deban sobrevivir a cambios de esquema, PostgreSQL sin migraciones no mejora a SQLite y suma riesgo.
-- **La suite de tests está atada a SQLite.** 8 de los 15 tests usan `sqlite3` directamente. Cambiar el motor del entregable obliga a reescribirlos.
+- **La suite de tests está atada a SQLite.** 8 de los 27 tests usan `sqlite3` directamente. Cambiar el motor del entregable obliga a reescribirlos.
 - **Plazo.** El congelamiento es el 20/11. No conviene cambiar infraestructura en la última semana.
 
 ## Qué cambia si mañana lo despliegan con PostgreSQL
@@ -39,7 +39,7 @@ Estado actual de la capa de datos, que no cambia con esta decisión: SQLModel so
 | Esquema | `create_all` | `create_all` crea las mismas 21 tablas | Sí |
 | Datos de prueba | `datos_prueba.py cargar` | El mismo comando, sin cambios | Sí |
 | Migraciones | No hay | Hay que incorporar Alembic antes de producción | No aplica |
-| Tests | 8 de 15 usan `sqlite3` | Reemplazar esos accesos por la sesión de SQLAlchemy para correrlos contra PostgreSQL | No |
+| Tests | 8 de 27 usan `sqlite3` | Reemplazar esos accesos por la sesión de SQLAlchemy para correrlos contra PostgreSQL | No |
 
 ### Receta de Compose
 
@@ -69,6 +69,8 @@ services:
 volumes:
   pgdata:
 ```
+
+Las claves `SECRET_KEY` y `CLAVE_JWT` siguen llegando por el `.env` de la raíz (ver el README), igual que con SQLite, así que `config.postgres.toml` no las lleva.
 
 `config.postgres.toml` es una copia de `config.toml` con `[database]` apuntando al servicio `db`: `DB_TYPE = "postgresql"`, `DB_DRIVER = "asyncpg"`, `DB_HOST = "db"`, `DB_PORT = 5432`, `DB_USER = "tci"`, `DB_NAME = "tci"` y la contraseña.
 
