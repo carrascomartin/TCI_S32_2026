@@ -1,9 +1,10 @@
-
 from typing import Optional, Tuple, Sequence
+
 from sqlmodel import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from db.db_models.incidencias import IncidenciaDb, FotoIncidenciaDb
-from db.db_models.catalogo import MaquinaDb
+from db.db_models.catalogo import MaquinaDb, TipoMaquinaDb
 
 
 class RepositorioIncidencias:
@@ -13,15 +14,27 @@ class RepositorioIncidencias:
     async def obtener(self, modelo, id_recurso: int):
         return await self.sesion.get(modelo, id_recurso)
 
-    async def obtener_maquina_por_codigo(self, codigo: str) -> Optional[MaquinaDb]:
+    async def obtener_maquina_por_codigo(
+        self, codigo: str
+    ) -> Optional[MaquinaDb]:
         resultado = await self.sesion.execute(
             select(MaquinaDb).where(MaquinaDb.codigo == codigo)
         )
         return resultado.scalars().first()
 
-    async def obtener_maquina_por_id(self, maquina_id: int) -> Optional[MaquinaDb]:
+    async def obtener_maquina_por_id(
+        self, maquina_id: int
+    ) -> Optional[MaquinaDb]:
         resultado = await self.sesion.execute(
             select(MaquinaDb).where(MaquinaDb.id == maquina_id)
+        )
+        return resultado.scalars().first()
+
+    async def obtener_tipo_maquina_por_id(self, tipo_maquina_id: int):
+        resultado = await self.sesion.execute(
+            select(TipoMaquinaDb).where(
+                TipoMaquinaDb.id == tipo_maquina_id
+            )
         )
         return resultado.scalars().first()
 
@@ -35,7 +48,9 @@ class RepositorioIncidencias:
         )
         return resultado.scalars().all()
 
-    async def guardar(self, incidencia: IncidenciaDb, fotos_data: list) -> IncidenciaDb:
+    async def guardar(
+        self, incidencia: IncidenciaDb, fotos_data: list
+    ) -> IncidenciaDb:
         self.sesion.add(incidencia)
         await self.sesion.flush()
 
@@ -45,7 +60,7 @@ class RepositorioIncidencias:
                 contenido_base64=foto.contenido_base64,
                 nombre_archivo=foto.nombre_archivo,
                 tipo_mime=foto.tipo_mime,
-                capturada_en=foto.capturada_en
+                capturada_en=foto.capturada_en,
             )
             self.sesion.add(db_foto)
 
@@ -61,7 +76,9 @@ class RepositorioIncidencias:
 
         if estado:
             query = query.where(IncidenciaDb.estado == estado)
-            count_query = count_query.where(IncidenciaDb.estado == estado)
+            count_query = count_query.where(
+                IncidenciaDb.estado == estado
+            )
 
         total_result = await self.sesion.execute(count_query)
         total = total_result.scalar_one()
