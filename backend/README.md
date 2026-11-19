@@ -82,7 +82,11 @@ export AUTOCONFIG_AUTH__JWT__HABILITADO=true   # solo si querés el login con JW
 uv run app.py
 ```
 
-Con Docker, las pasa `docker-compose.yml` desde el archivo `.env` de la raíz (ver `.env.example`).
+Con Docker, las pasa `docker-compose.yml` desde el archivo `.env` de la raíz (ver `.env.example`), junto con
+`POSTGRES_PASSWORD`, que llega al backend como `AUTOCONFIG_DATABASE__DB_PASSWORD`. Dentro de Compose la
+configuración es `config.docker.toml` (montado como `config.toml`): igual a `config.toml` salvo `[database]`,
+que apunta al servicio `db` de PostgreSQL y no incluye la contraseña. `tests/test_config_docker.py` falla
+si los dos archivos difieren en otra sección.
 
 - **Nombre de la variable:** `AUTOCONFIG_<SECCIÓN>__<CAMPO>`, con doble guion bajo entre niveles y sin
   distinguir mayúsculas. Por ejemplo, `AUTOCONFIG_AUTH__JWT__HABILITADO=true`. Una variable que no
