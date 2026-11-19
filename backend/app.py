@@ -278,10 +278,14 @@ if __name__ == "__main__":
         # implicit loads with config
         load_logger(cfg.logs)
     except Exception as e:
-        get_logger().critical(f"cannot load config file ({config_name}) ABORTANDO")
+        get_logger().critical(f"cannot load config file ({config_name}) ABORTANDO: {e}")
         exit(1)
 
-    app = create_app("app", "descripción", cfg)
+    try:
+        app = create_app("app", "descripción", cfg)
+    except ValueError as e:
+        get_logger().critical(f"configuración inválida, ABORTANDO: {e}")
+        exit(1)
     register_base_routes(app)
 
     _print_startup_table(cfg)

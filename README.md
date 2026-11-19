@@ -85,8 +85,19 @@ Trabajamos con **forks + `upstream`** (el flujo de colaboración real del open s
 Desde un clone limpio, con Docker instalado y corriendo:
 
 ```bash
+cp .env.example .env
+```
+
+Abrí `.env` y completá `SECRET_KEY` y `CLAVE_JWT`. Generá cada valor con
+`python3 -c "import secrets; print(secrets.token_urlsafe(48))"` (mínimo 32 bytes). El archivo `.env` no
+se versiona: las claves no están en el repositorio. Después:
+
+```bash
 docker compose up --build
 ```
+
+Si falta alguna clave, `docker compose` no arranca y dice cuál. El compose activa el login con JWT
+usando `CLAVE_JWT`; más detalle en "Claves y variables de entorno" de `backend/README.md`.
 
 Esto levanta:
 
