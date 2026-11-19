@@ -15,6 +15,7 @@ from jwcrypto import jwk, jwt
 from jwcrypto.common import JWException, base64url_encode
 
 from config import Config
+from secretos import como_definir
 
 
 ALGORITMOS_HMAC_COMPATIBLES = {"HS256", "HS384", "HS512"}
@@ -51,8 +52,8 @@ def validar_configuracion_jwt(configuracion: Config) -> None:
     largo_minimo = {"HS256": 32, "HS384": 48, "HS512": 64}[jwt_cfg.ALGORITMO]
     if len(clave) < largo_minimo:
         raise ValueError(
-            f"secrets.CLAVE_JWT debe tener al menos {largo_minimo} bytes para "
-            f"{jwt_cfg.ALGORITMO}."
+            f"CLAVE_JWT tiene {len(clave)} bytes y {jwt_cfg.ALGORITMO} exige al menos "
+            f"{largo_minimo}. {como_definir('CLAVE_JWT', largo_minimo)}"
         )
     try:
         for patron in jwt_cfg.RUTAS_EXCLUIDAS:

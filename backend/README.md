@@ -31,8 +31,10 @@ Para correrlo suelto (sin el frontend), desde esta carpeta:
 
 ```bash
 docker build -t tci-backend .
-docker run -p 8300:8300 tci-backend
+docker run -p 8300:8300 -e AUTOCONFIG_SECRETS__SECRET_KEY=<clave de al menos 32 bytes> tci-backend
 ```
+
+Sin esa variable, el contenedor termina con un mensaje que explica cómo definirla.
 
 Para levantar todo el stack (backend + frontend) juntos, usar `docker compose up --build` desde la raíz del repo — ver el README principal.
 
@@ -60,6 +62,39 @@ La copia local conserva la generación y validación de archivos TOML, YAML y
 JSON, además de variables de entorno con prefijo `AUTOCONFIG_`. Sus
 dependencias de runtime sí están declaradas en `pyproject.toml` y se instalan
 normalmente con `uv sync` o `pip`.
+
+### Claves y variables de entorno
+
+Las claves secretas no están en el repositorio: `config.toml` no las define y se leen de variables de
+entorno.
+
+| Clave | Variable de entorno | Cuándo es obligatoria | Largo mínimo |
+| --- | --- | --- | --- |
+| `SECRET_KEY` | `AUTOCONFIG_SECRETS__SECRET_KEY` | Siempre | 32 bytes |
+| `CLAVE_JWT` | `AUTOCONFIG_SECRETS__CLAVE_JWT` | Con el JWT local habilitado | 32 bytes en HS256, 48 en HS384, 64 en HS512 |
+
+Generá cada valor con `python3 -c "import secrets; print(secrets.token_urlsafe(48))"`. Para correr sin Docker:
+
+```bash
+export AUTOCONFIG_SECRETS__SECRET_KEY=<clave>
+export AUTOCONFIG_SECRETS__CLAVE_JWT=<otra clave>
+export AUTOCONFIG_AUTH__JWT__HABILITADO=true   # solo si querés el login con JWT
+uv run app.py
+```
+
+Con Docker, las pasa `docker-compose.yml` desde el archivo `.env` de la raíz (ver `.env.example`).
+
+- **Nombre de la variable:** `AUTOCONFIG_<SECCIÓN>__<CAMPO>`, con doble guion bajo entre niveles y sin
+  distinguir mayúsculas. Por ejemplo, `AUTOCONFIG_AUTH__JWT__HABILITADO=true`. Una variable que no
+  corresponde a ningún campo hace fallar la carga de la configuración.
+- **Precedencia:** el archivo de configuración gana sobre la variable, así que esta solo tiene efecto sobre
+  los campos que el archivo no define. Por ejemplo, `config.toml` define `PORT`, por lo que
+  `AUTOCONFIG_SERVER__PORT` se ignora. Por eso `config.toml` no trae las claves ni `HABILITADO`: así la
+  variable puede definirlas. Si definís `SECRET_KEY` en un `config.<env>.toml` (que no se versiona), esa
+  es la que se usa.
+- **Si falta o es corta**, el backend aborta al iniciar y el mensaje dice qué variable definir y cómo
+  generar el valor. El mensaje no muestra el valor de la clave.
+- **Tests:** `tests/conftest.py` define una `SECRET_KEY` propia para las pruebas.
 
 ---
 
@@ -142,7 +177,8 @@ La ruta `GET /auth/me` sirve como ejemplo y devuelve el objeto normalizado.
 ## JWT local y roles
 
 El backend también puede emitir JWT propios y consultar los roles desde la base
-de datos. Para habilitarlo, copiá `config.toml` a `config.<environment>.toml`,
+de datos. Con `docker compose`, ya viene habilitado (usa la `CLAVE_JWT` de `.env`). Sin Docker, definí
+las variables de "Claves y variables de entorno" o copiá `config.toml` a `config.<environment>.toml`,
 configurá una clave secreta distinta por entorno y activá el bloque `[auth.JWT]`.
 No habilites al mismo tiempo el proveedor JWT local y Keycloak.
 
@@ -325,10 +361,10 @@ El comando solicita una contraseña por usuario, sin mostrarla. Crea los roles
 existentes. Si una cuenta existente no tiene el rol esperado, finaliza con
 error para que se revise su asignación.
 
-Para iniciar sesión, habilitar JWT y configurar una clave en la configuración
-local del backend antes de iniciar Docker. La configuración de ejemplo deja
-JWT deshabilitado. Enviar correo y contraseña a `POST /auth/token` y usar el
-token obtenido para consultar `GET /auth/me`.
+Para iniciar sesión, enviar correo y contraseña a `POST /auth/token` y usar el
+token obtenido para consultar `GET /auth/me`. Con `docker compose` el JWT ya
+está habilitado; el backend suelto lo deja deshabilitado salvo que se active
+(ver "Claves y variables de entorno").
 
 Para crear un usuario individual:
 
@@ -346,7 +382,7 @@ en Docker, ejecutar desde la raíz:
 docker compose exec backend uv run --no-dev datos_prueba.py cargar --contrasena <contraseña>
 ```
 
-Fuera de Docker, desde `backend/`:
+Fuera de Docker, desde `backend/` y con las variables de "Claves y variables de entorno" definidas:
 
 ```bash
 uv run python datos_prueba.py cargar --contrasena <contraseña>
