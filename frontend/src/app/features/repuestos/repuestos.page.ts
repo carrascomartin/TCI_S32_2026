@@ -56,7 +56,6 @@ export class RepuestosPage {
   protected readonly filtros = FILTROS;
   protected readonly esDemo = environment.useMockData;
   protected readonly cifra = cifra;
-  protected readonly maquinas = maquinasCompatibles;
   protected readonly ubicaciones = codigosUbicacion;
 
   protected detalleMinimo(repuesto: RepuestoDto): string {

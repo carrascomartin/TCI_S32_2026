@@ -53,7 +53,7 @@
                   <app-icon name="factory" />
                 </span>
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-medium">{{ nombreMaquina(inc) }}</p>
+                  <p class="truncate text-sm"><span class="machine-code text-base">{{ nombreMaquina(inc) }}</span></p>
                   <p class="truncate text-xs text-muted-foreground">{{ inc.descripcion }}</p>
                   <p class="text-xs text-muted-foreground">
                     <span class="numeric">{{ codigoIncidencia(inc.id) }}</span> ·
@@ -80,7 +80,7 @@
               <tbody>
                 @for (inc of incidencias(); track inc.id) {
                   <tr>
-                    <td>{{ nombreMaquina(inc) }}</td>
+                    <td><span class="machine-code text-base">{{ nombreMaquina(inc) }}</span></td>
                     <td>
                       {{ inc.descripcion }}<br /><span
                         class="numeric text-xs text-muted-foreground"

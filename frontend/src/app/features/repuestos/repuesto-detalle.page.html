@@ -127,7 +127,7 @@
         <div hlmCardContent>
           <ul class="flex flex-col gap-1 text-sm">
             @for (m of r.maquinas_compatibles ?? []; track m.id) {
-              <li>{{ m.tipo_maquina.nombre }} <span class="numeric">{{ m.codigo }}</span></li>
+              <li>{{ m.tipo_maquina.nombre }} <span class="machine-code numeric text-base">{{ m.codigo }}</span></li>
             } @empty {
               <li class="text-muted-foreground">{{ config.detalle.sinMaquinas }}</li>
             }
