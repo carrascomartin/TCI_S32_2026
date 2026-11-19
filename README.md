@@ -88,9 +88,9 @@ Desde un clone limpio, con Docker instalado y corriendo:
 cp .env.example .env
 ```
 
-Abrí `.env` y completá `SECRET_KEY` y `CLAVE_JWT`. Generá cada valor con
-`python3 -c "import secrets; print(secrets.token_urlsafe(48))"` (mínimo 32 bytes). El archivo `.env` no
-se versiona: las claves no están en el repositorio. Después:
+Abrí `.env` y completá `SECRET_KEY`, `CLAVE_JWT` y `POSTGRES_PASSWORD`. Generá cada valor con
+`python3 -c "import secrets; print(secrets.token_urlsafe(48))"` (mínimo 32 bytes para las dos claves). El
+archivo `.env` no se versiona: las claves y la contraseña no están en el repositorio. Después:
 
 ```bash
 docker compose up --build
@@ -103,10 +103,15 @@ Esto levanta:
 
 | Servicio | URL | Qué es |
 | --- | --- | --- |
-| `backend` | http://localhost:8300 | API FastAPI. `/health` devuelve `OK`, `/` devuelve el estado de configuración. |
+| `db` | (solo dentro de Compose) | PostgreSQL 16. El backend espera a que esté sano antes de arrancar. |
+| `backend` | http://localhost:8300 | API FastAPI. `/health` devuelve `OK` y `/docs` muestra el Swagger. |
 | `frontend` | http://localhost:8080 | SPA Angular servida con nginx (build de producción). |
 
 Para pararlo: `docker compose down` desde la raíz del repo.
+
+Los datos quedan en PostgreSQL, en el volumen `pgdata`: `docker compose down` los conserva y `docker compose down -v` los borra. La base arranca vacía; para cargar los datos de prueba, ver "Base de prueba" en `backend/README.md`. Dentro de Compose el backend usa `backend/config.docker.toml`, que es igual a `config.toml` salvo la sección `[database]`. Sin Docker y en los tests se sigue usando SQLite. Por qué: [`docs/M6-adr-sqlite-o-postgres.md`](docs/M6-adr-sqlite-o-postgres.md).
+
+> **Si ya lo tenías levantado con SQLite:** los datos del volumen `backend-data` no pasan solos a PostgreSQL. Después del primer `docker compose up --build` con esta versión, volvé a cargar los datos de prueba. El volumen viejo se puede borrar con `docker volume rm tci_s32_2026_backend-data`.
 
 > **En Mac con Colima:** si `docker compose up` falla porque el daemon no responde, asegurate de que Colima esté corriendo (`colima start`). Si `colima start` falla con `failed to attach disk "colima", in use by instance "colima"`, un simple `colima stop && colima start` no siempre alcanza — en ese caso `colima delete` (recrea la VM desde cero, perdés las imágenes cacheadas) seguido de `colima start` lo resuelve.
 

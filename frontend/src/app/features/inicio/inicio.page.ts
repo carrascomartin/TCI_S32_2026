@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { type BadgeVariants, HlmBadgeImports } from '@shared/ui/badge';
@@ -7,6 +7,8 @@ import { HlmCardImports } from '@shared/ui/card';
 import { IconComponent } from '@shared/ui/icon';
 import { DataTableComponent } from '@shared/ui/table';
 import { environment } from '../../../environments/environment';
+import { ROLES_LECTURA_PLANTA, tieneAlgunRol } from '../../core/auth/roles.guard';
+import { SessionService } from '../../core/auth/session.service';
 import { ESTADOS_INCIDENCIA, INICIO_CONFIG } from './inicio.config';
 import { AlertaStockDto, IncidenciaDto } from './inicio.models';
 import { InicioService } from './inicio.service';
@@ -39,16 +41,22 @@ export class InicioPage {
   protected readonly alertas = signal<AlertaStockDto[]>([]);
   protected readonly cargaAlertas = signal<Carga>('cargando');
 
-  /**
-   * Gerencia/Administración es solo lectura: no ve acciones.
-   * TODO: derivarlo de los roles de GET /api/v0/auth/me ('gerencia_administracion')
-   * cuando exista autenticación.
-   */
-  protected readonly soloLectura = false;
+  private readonly sesion = inject(SessionService);
+
+  /** El operario no accede al almacén ni a máquinas: no ve esos accesos ni el resumen de stock. */
+  protected readonly veAlmacen = computed(() =>
+    tieneAlgunRol(this.sesion.roles(), ROLES_LECTURA_PLANTA),
+  );
 
   constructor() {
-    this.cargarIncidencias();
-    this.cargarAlertas();
+    // Los roles pueden llegar después de crear la página (al recargar): se carga una sola vez.
+    let cargado = false;
+    effect(() => {
+      if (this.veAlmacen() && !cargado) {
+        cargado = true;
+        untracked(() => this.cargarAlertas());
+      }
+    });
   }
 
   protected cargarIncidencias(): void {
@@ -89,7 +97,9 @@ export class InicioPage {
   }
 
   protected estado(valor: string): { etiqueta: string; variante: BadgeVariants['variant'] } {
-    return ESTADOS_INCIDENCIA[valor] ?? { etiqueta: valor.replaceAll('_', ' '), variante: 'outline' };
+    return (
+      ESTADOS_INCIDENCIA[valor] ?? { etiqueta: valor.replaceAll('_', ' '), variante: 'outline' }
+    );
   }
 
   /** "Hace 12 min", "Hace 2 h", "Hace 1 d". */

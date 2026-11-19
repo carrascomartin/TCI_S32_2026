@@ -1,3 +1,6 @@
+import { ROLES_LECTURA_PLANTA } from '../../core/auth/roles.guard';
+
+/** Cada módulo indica qué roles lo ven; sin `roles`, lo ven todos. */
 export const HEADER_CONFIG = {
   brand: {
     name: 'TCI · Mantenimiento de planta',
@@ -5,18 +8,10 @@ export const HEADER_CONFIG = {
   },
   navigation: [
     { label: 'Inicio', href: '/inicio' },
-    { label: 'Incidencias', href: '/incidencias' },
-    { label: 'Repuestos', href: '/stock' },
-    { label: 'Ubicaciones', href: '/ubicaciones' },
-    { label: 'Reposición', href: '/reposicion' },
-    { label: 'Registrar uso', href: '/usos/nuevo' },
-    { label: 'Compras', href: '/compras' },
-    { label: 'Pedidos de compra', href: '/pedidos-compra' },
-    { label: 'Máquinas', href: '/maquinas' },
-    { label: 'Componentes', href: '/ui-preview' },
-  ],
-  cta: {
-    label: 'Reportar incidencia',
-    href: '/incidencias/nueva',
-  },
+    { label: 'Máquinas', href: '/maquinas', roles: ROLES_LECTURA_PLANTA },
+    { label: 'Repuestos', href: '/stock', roles: ROLES_LECTURA_PLANTA },
+    { label: 'Ubicaciones', href: '/ubicaciones', roles: ROLES_LECTURA_PLANTA },
+    { label: 'Reposición', href: '/reposicion', roles: ROLES_LECTURA_PLANTA },
+    { label: 'Compras', href: '/compras', roles: ROLES_LECTURA_PLANTA },
+  ] as { label: string; href: string; roles?: string[] }[],
 };

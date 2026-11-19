@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { HlmBadgeImports } from '@shared/ui/badge';
 import { HlmButtonImports } from '@shared/ui/button';
 import { filter, map, startWith } from 'rxjs';
+import { tieneAlgunRol } from '../../core/auth/roles.guard';
 import { SessionService } from '../../core/auth/session.service';
 import { HEADER_CONFIG } from './HEADER_CONFIG';
 
@@ -24,6 +25,13 @@ export class HeaderComponent {
   protected readonly nombreMostrar = this.sessionService.nombreMostrar;
   protected readonly esModoMock = this.sessionService.esModoMock;
 
+  /** Solo los módulos que el rol de la persona puede usar. */
+  protected readonly navegacion = computed(() =>
+    this.config.navigation.filter(
+      (item) => !item.roles || tieneAlgunRol(this.sessionService.roles(), item.roles),
+    ),
+  );
+
   private readonly urlActual = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -33,9 +41,7 @@ export class HeaderComponent {
     { initialValue: this.router.url },
   );
 
-  protected readonly esPantallaLogin = computed(() =>
-    this.urlActual().startsWith('/login'),
-  );
+  protected readonly esPantallaLogin = computed(() => this.urlActual().startsWith('/login'));
 
   protected readonly mostrarNavegacion = computed(
     () => this.sessionService.estaAutenticado() && !this.esPantallaLogin(),
