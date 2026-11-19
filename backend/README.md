@@ -396,7 +396,6 @@ El comando crea las tablas y carga los datos en la base indicada por `DB_NAME`
 en `config.toml` (por defecto, `backend/data/db.sqlite3`). Para usar otra
 configuración, agregar `--config dev` para usar `backend/config.dev.toml`. Al iniciar el backend,
 usar la misma configuración para consultar esa base.
-
 Por ejemplo, copiar `config.toml` a `config.dummy.toml`, cambiar `DB_NAME`
 en la sección `[database]` y ejecutar:
 
