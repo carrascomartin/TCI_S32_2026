@@ -17,7 +17,7 @@
     </div>
 
     <header class="flex flex-wrap items-center gap-3">
-      <h1 class="text-3xl font-semibold">{{ item.codigo }}</h1>
+      <h1 class="text-3xl font-bold">{{ item.codigo }}</h1>
       <span hlmBadge class="estado-maquina" [attr.data-estado]="item.estado" [variant]="estado(item.estado).variante">
         {{ estado(item.estado).etiqueta }}
       </span>

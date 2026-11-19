@@ -125,7 +125,7 @@
             <li class="rounded-lg border border-border p-4">
               <a [routerLink]="['/maquinas', maquina.id]" class="flex flex-col gap-3">
                 <div class="flex items-center justify-between gap-3">
-                  <span class="font-semibold">{{ maquina.codigo }}</span>
+                  <span class="text-lg font-bold">{{ maquina.codigo }}</span>
                   <span hlmBadge class="estado-maquina" [attr.data-estado]="maquina.estado" [variant]="estado(maquina.estado).variante">
                     {{ estado(maquina.estado).etiqueta }}
                   </span>
@@ -162,7 +162,7 @@
             <tbody>
               @for (maquina of maquinasVisibles(); track maquina.id) {
                 <tr>
-                  <td class="font-medium">{{ maquina.codigo }}</td>
+                  <td class="text-base font-bold">{{ maquina.codigo }}</td>
                   <td>{{ maquina.tipo_maquina.nombre }}</td>
                   <td>{{ maquina.numero_serie || config.detalle.noInformado }}</td>
                   <td>
