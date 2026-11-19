@@ -28,6 +28,7 @@ type Carga = 'cargando' | 'listo' | 'error';
     DataTableComponent,
   ],
   templateUrl: './maquinas.page.html',
+  styleUrl: './maquina-estado.css',
 })
 export class MaquinasPage {
   private readonly servicio = inject(MaquinasService);
