@@ -126,7 +126,7 @@
               <a [routerLink]="['/maquinas', maquina.id]" class="flex flex-col gap-3">
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-lg font-bold">{{ maquina.codigo }}</span>
-                  <span hlmBadge class="estado-maquina" [attr.data-estado]="maquina.estado" [variant]="estado(maquina.estado).variante">
+                  <span hlmBadge [variant]="estado(maquina.estado).variante">
                     {{ estado(maquina.estado).etiqueta }}
                   </span>
                 </div>
@@ -166,7 +166,7 @@
                   <td>{{ maquina.tipo_maquina.nombre }}</td>
                   <td>{{ maquina.numero_serie || config.detalle.noInformado }}</td>
                   <td>
-                    <span hlmBadge class="estado-maquina" [attr.data-estado]="maquina.estado" [variant]="estado(maquina.estado).variante">
+                    <span hlmBadge [variant]="estado(maquina.estado).variante">
                       {{ estado(maquina.estado).etiqueta }}
                     </span>
                   </td>

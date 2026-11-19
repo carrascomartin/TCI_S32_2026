@@ -18,7 +18,6 @@ type Carga = 'cargando' | 'listo' | 'error';
   standalone: true,
   imports: [RouterLink, FormsModule, HlmBadgeImports, HlmButtonImports, HlmCardImports],
   templateUrl: './maquina-detalle.page.html',
-  styleUrl: './maquina-estado.css',
 })
 export class MaquinaDetallePage {
   private readonly servicio = inject(MaquinasService);

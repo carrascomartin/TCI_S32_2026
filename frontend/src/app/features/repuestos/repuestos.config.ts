@@ -103,6 +103,6 @@ export const FILTROS: { id: FiltroEstado; etiqueta: string }[] = [
 
 export const ESTADOS_STOCK: Record<EstadoStock, { etiqueta: string; variante: BadgeVariants['variant'] }> = {
   sin_stock: { etiqueta: 'Sin stock', variante: 'destructive' },
-  bajo_minimo: { etiqueta: 'Bajo mínimo', variante: 'outline' },
-  normal: { etiqueta: 'Disponible', variante: 'secondary' },
+  bajo_minimo: { etiqueta: 'Bajo mínimo', variante: 'warning' },
+  normal: { etiqueta: 'Disponible', variante: 'success' },
 };

@@ -71,7 +71,7 @@
                 </div>
                 <p class="text-xs font-semibold text-muted-foreground" [attr.title]="ubicacion.descripcion || null">{{ descripcionCorta(ubicacion.descripcion) }}</p>
               </div>
-              <span hlmBadge [variant]="ubicacion.activo ? 'secondary' : 'outline'">
+              <span hlmBadge [variant]="ubicacion.activo ? 'success' : 'outline'">
                 {{ ubicacion.activo ? config.activa : config.inactiva }}
               </span>
             </li>
@@ -99,7 +99,7 @@
                   </td>
                   <td class="font-semibold" [attr.title]="ubicacion.descripcion || null">{{ descripcionCorta(ubicacion.descripcion) }}</td>
                   <td>
-                    <span hlmBadge [variant]="ubicacion.activo ? 'secondary' : 'outline'">
+                    <span hlmBadge [variant]="ubicacion.activo ? 'success' : 'outline'">
                       {{ ubicacion.activo ? config.activa : config.inactiva }}
                     </span>
                   </td>
