@@ -85,7 +85,9 @@
 
     # JWT local y roles guardados en la base de datos. No habilitar junto con Keycloak.
     [auth.JWT]
-        HABILITADO = false
+        # Desactivado por defecto. Se activa sin tocar este archivo con
+        # AUTOCONFIG_AUTH__JWT__HABILITADO=true (docker-compose.yml ya lo hace). Si lo definís
+        # acá con HABILITADO = true/false, el archivo gana sobre la variable.
         DURACION_TOKEN_MINUTOS = 30
         ALGORITMO = "HS256"
         ALGORITMOS_PERMITIDOS = ["HS256", "HS384", "HS512"]

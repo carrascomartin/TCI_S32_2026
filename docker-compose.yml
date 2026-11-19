@@ -5,6 +5,11 @@ services:
       - "8300:8300"
     volumes:
       - backend-data:/app/data
+    environment:
+      # Las claves salen del archivo .env (copiá .env.example); si faltan, compose no arranca.
+      AUTOCONFIG_SECRETS__SECRET_KEY: ${SECRET_KEY:?Falta SECRET_KEY. Copiá .env.example a .env y completalo (ver README)}
+      AUTOCONFIG_SECRETS__CLAVE_JWT: ${CLAVE_JWT:?Falta CLAVE_JWT. Copiá .env.example a .env y completalo (ver README)}
+      AUTOCONFIG_AUTH__JWT__HABILITADO: "true"
 
   frontend:
     build: ./frontend
