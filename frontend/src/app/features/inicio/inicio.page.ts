@@ -7,7 +7,11 @@ import { HlmCardImports } from '@shared/ui/card';
 import { IconComponent } from '@shared/ui/icon';
 import { DataTableComponent } from '@shared/ui/table';
 import { environment } from '../../../environments/environment';
-import { ROLES_LECTURA_PLANTA, tieneAlgunRol } from '../../core/auth/roles.guard';
+import {
+  ROLES_LECTURA_PLANTA,
+  ROLES_REPORTE_INCIDENCIA,
+  tieneAlgunRol,
+} from '../../core/auth/roles.guard';
 import { SessionService } from '../../core/auth/session.service';
 import { ESTADOS_INCIDENCIA, INICIO_CONFIG } from './inicio.config';
 import { AlertaStockDto, IncidenciaDto } from './inicio.models';
@@ -48,7 +52,14 @@ export class InicioPage {
     tieneAlgunRol(this.sesion.roles(), ROLES_LECTURA_PLANTA),
   );
 
+  /** Solo el operario reporta incidencias (acordado con el equipo). */
+  protected readonly reportaIncidencias = computed(() =>
+    tieneAlgunRol(this.sesion.roles(), ROLES_REPORTE_INCIDENCIA),
+  );
+
   constructor() {
+    // Todos los roles consultan incidencias.
+    this.cargarIncidencias();
     // Los roles pueden llegar después de crear la página (al recargar): se carga una sola vez.
     let cargado = false;
     effect(() => {

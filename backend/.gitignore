@@ -7,3 +7,6 @@ config.*.toml
 !config.docker.toml
 .env
 .env.*
+
+# generado al instalar el backend como paquete (setup.py)
+*.egg-info/

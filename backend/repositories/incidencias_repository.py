@@ -83,7 +83,8 @@ class RepositorioIncidencias:
         total_result = await self.sesion.execute(count_query)
         total = total_result.scalar_one()
 
-        query = query.offset(offset).limit(limit)
+        # Las más recientes primero, para que la paginación sea estable.
+        query = query.order_by(IncidenciaDb.reportada_en.desc(), IncidenciaDb.id.desc()).offset(offset).limit(limit)
         resultado = await self.sesion.execute(query)
         items = resultado.scalars().all()
 

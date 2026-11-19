@@ -15,7 +15,8 @@ from services.incidencias_service import ServicioIncidencias
 
 router = APIRouter(prefix="/api/v0", tags=["Incidencias"])
 
-rol_reporte = requiere_rol("operario_maquina", "encargado_mantenimiento")
+# Acordado con el equipo (docs/actores.md): solo el operario reporta; todos los roles consultan.
+rol_reporte = requiere_rol("operario_maquina")
 rol_lectura = requiere_rol("empleado_mantenimiento", "encargado_mantenimiento", "gerencia_administracion", "operario_maquina")
 
 def obtener_servicio(sesion: AsyncSession = Depends(get_db)) -> ServicioIncidencias:

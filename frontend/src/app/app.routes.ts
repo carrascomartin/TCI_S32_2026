@@ -2,7 +2,18 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
 import { authGuard } from './core/auth/auth.guard';
-import { ROLES_LECTURA_PLANTA, rolGuard } from './core/auth/roles.guard';
+import {
+  ROLES_CONSULTA_INCIDENCIAS,
+  ROLES_LECTURA_PLANTA,
+  ROLES_REPORTE_INCIDENCIA,
+  rolGuard,
+} from './core/auth/roles.guard';
+import { ConsultaIncidenciasHttpService } from './features/consulta-incidencias/consulta-incidencias.http.service';
+import { ConsultaIncidenciasService } from './features/consulta-incidencias/consulta-incidencias.service';
+import { MockConsultaIncidenciasService } from './features/consulta-incidencias/mock-consulta-incidencias.service';
+import { MockReportarIncidenciaService } from './features/reportar-incidencia/mock-reportar-incidencia.service';
+import { ReportarIncidenciaHttpService } from './features/reportar-incidencia/reportar-incidencia.http.service';
+import { ReportarIncidenciaService } from './features/reportar-incidencia/reportar-incidencia.service';
 import { ROLES_ESCRITURA } from './features/repuestos/repuestos.models';
 import { InicioHttpService } from './features/inicio/inicio.http.service';
 import { InicioService } from './features/inicio/inicio.service';
@@ -52,9 +63,7 @@ export const routes: Routes = [
           {
             provide: RepuestosService,
             useFactory: () =>
-              environment.useMockData
-                ? inject(MockRepuestosService)
-                : inject(RepuestosHttpService),
+              environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
           },
         ],
         children: [
@@ -69,14 +78,18 @@ export const routes: Routes = [
             canActivate: [rolGuard(ROLES_ESCRITURA)],
             title: 'Nuevo repuesto · TCI',
             loadComponent: () =>
-              import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
+              import('./features/repuestos/repuesto-form.page').then(
+                (page) => page.RepuestoFormPage,
+              ),
           },
           {
             path: ':id/editar',
             canActivate: [rolGuard(ROLES_ESCRITURA)],
             title: 'Editar repuesto · TCI',
             loadComponent: () =>
-              import('./features/repuestos/repuesto-form.page').then((page) => page.RepuestoFormPage),
+              import('./features/repuestos/repuesto-form.page').then(
+                (page) => page.RepuestoFormPage,
+              ),
           },
           {
             path: ':id',
@@ -97,9 +110,7 @@ export const routes: Routes = [
           {
             provide: RepuestosService,
             useFactory: () =>
-              environment.useMockData
-                ? inject(MockRepuestosService)
-                : inject(RepuestosHttpService),
+              environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
           },
         ],
         loadComponent: () =>
@@ -113,9 +124,7 @@ export const routes: Routes = [
           {
             provide: RepuestosService,
             useFactory: () =>
-              environment.useMockData
-                ? inject(MockRepuestosService)
-                : inject(RepuestosHttpService),
+              environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
           },
         ],
         loadComponent: () =>
@@ -131,13 +140,63 @@ export const routes: Routes = [
           {
             provide: RepuestosService,
             useFactory: () =>
-              environment.useMockData
-                ? inject(MockRepuestosService)
-                : inject(RepuestosHttpService),
+              environment.useMockData ? inject(MockRepuestosService) : inject(RepuestosHttpService),
           },
         ],
         loadComponent: () =>
           import('./features/compras/compras.page').then((page) => page.ComprasPage),
+      },
+
+      // Va antes que 'incidencias': si no, 'nueva' se toma como el :id del detalle.
+      {
+        path: 'incidencias/nueva',
+        title: 'Reportar incidencia · TCI',
+        canActivate: [rolGuard(ROLES_REPORTE_INCIDENCIA)],
+        providers: [
+          {
+            provide: ReportarIncidenciaService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockReportarIncidenciaService)
+                : inject(ReportarIncidenciaHttpService),
+          },
+        ],
+        loadComponent: () =>
+          import('./features/reportar-incidencia/reportar-incidencia.page').then(
+            (page) => page.ReportarIncidenciaPage,
+          ),
+      },
+
+      {
+        path: 'incidencias',
+        canActivate: [rolGuard(ROLES_CONSULTA_INCIDENCIAS)],
+        providers: [
+          {
+            provide: ConsultaIncidenciasService,
+            useFactory: () =>
+              environment.useMockData
+                ? inject(MockConsultaIncidenciasService)
+                : inject(ConsultaIncidenciasHttpService),
+          },
+        ],
+        children: [
+          {
+            path: '',
+            title: 'Consulta de incidencias · TCI',
+            loadComponent: () =>
+              import('./features/consulta-incidencias/consulta-incidencias.page').then(
+                (page) => page.ConsultaIncidenciasPage,
+              ),
+          },
+          {
+            path: ':id',
+            title: 'Detalle de incidencia · TCI',
+            loadComponent: () =>
+              import('./features/consulta-incidencias/incidencia-detalle.page').then(
+                (page) => page.IncidenciaDetallePage,
+              ),
+          },
+        ],
       },
 
       {
@@ -147,9 +206,7 @@ export const routes: Routes = [
           {
             provide: MaquinasService,
             useFactory: () =>
-              environment.useMockData
-                ? inject(MockMaquinasService)
-                : inject(MaquinasHttpService),
+              environment.useMockData ? inject(MockMaquinasService) : inject(MaquinasHttpService),
           },
         ],
         children: [
@@ -176,8 +233,6 @@ export const routes: Routes = [
     path: '**',
     title: 'Pantalla en desarrollo · TCI',
     loadComponent: () =>
-      import('./features/en-desarrollo/en-desarrollo.page').then(
-        (page) => page.EnDesarrolloPage,
-      ),
+      import('./features/en-desarrollo/en-desarrollo.page').then((page) => page.EnDesarrolloPage),
   },
 ];

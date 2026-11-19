@@ -82,6 +82,8 @@ Trabajamos con **forks + `upstream`** (el flujo de colaboración real del open s
 
 ## 🐳 Cómo levantar el proyecto con Docker
 
+> Paso a paso completo (datos de prueba, usuarios por rol, acceso a la base, tests y problemas comunes): [`docs/demo/levantar.md`](docs/demo/levantar.md). Guion de la demo: [`docs/demo/guion.md`](docs/demo/guion.md).
+
 Desde un clone limpio, con Docker instalado y corriendo:
 
 ```bash

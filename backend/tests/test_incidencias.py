@@ -33,6 +33,16 @@ def preparar_usuario(ruta):
             VALUES (1, 1)
             """
         )
+        conexion.execute(
+            """
+            INSERT INTO usuarios
+                (id, nombre, apellido, genero, correo, hash_contrasena, verificado)
+            VALUES
+                (10, 'Olivia', 'Demo', 'F', 'operario@example.invalid', 'hash', 0)
+            """
+        )
+        conexion.execute("INSERT INTO roles (id, nombre) VALUES (10, 'operario_maquina')")
+        conexion.execute("INSERT INTO usuarios_x_roles (usuario_id, rol_id) VALUES (10, 10)")
 
 
 def preparar_configuracion(ruta):
@@ -67,6 +77,8 @@ def test_reportar_listar_y_obtener_incidencias(tmp_path):
             roles=["encargado_mantenimiento"],
         )
         cabecera = {"Authorization": f"Bearer {token}"}
+        token_operario, _ = crear_token_jwt(cfg, 10, roles=["operario_maquina"])
+        operario = {"Authorization": f"Bearer {token_operario}"}
 
         tipo = client.post(
             "/api/v0/tipos-maquina",
@@ -87,7 +99,7 @@ def test_reportar_listar_y_obtener_incidencias(tmp_path):
 
         respuesta = client.post(
             "/api/v0/incidencias",
-            headers=cabecera,
+            headers=operario,
             json={
                 "maquina_codigo": "MAQ-1",
                 "descripcion": "La máquina presenta una vibración anormal.",
@@ -130,7 +142,7 @@ def test_reportar_listar_y_obtener_incidencias(tmp_path):
 
         maquina_inexistente = client.post(
             "/api/v0/incidencias",
-            headers=cabecera,
+            headers=operario,
             json={
                 "maquina_codigo": "NO-EXISTE",
                 "descripcion": "Prueba de máquina inexistente.",
@@ -147,7 +159,7 @@ def test_reportar_listar_y_obtener_incidencias(tmp_path):
 
         turno_invalido = client.post(
             "/api/v0/incidencias",
-            headers=cabecera,
+            headers=operario,
             json={
                 "maquina_codigo": "MAQ-1",
                 "descripcion": "Prueba de turno inválido.",
@@ -203,3 +215,55 @@ def test_incidencias_requiere_autenticacion(tmp_path):
             headers=cabecera,
         )
         assert respuesta.status_code == 200, respuesta.text
+
+
+def test_solo_el_operario_reporta_y_todos_consultan(tmp_path):
+    ruta = tmp_path / "incidencias_roles.sqlite3"
+    cfg = preparar_configuracion(ruta)
+    app = create_app(cfg=cfg)
+    roles = {
+        20: "operario_maquina",
+        21: "empleado_mantenimiento",
+        22: "encargado_mantenimiento",
+        23: "gerencia_administracion",
+    }
+
+    with TestClient(app) as client:
+        with sqlite3.connect(ruta) as conexion:
+            conexion.execute("INSERT INTO tipos_maquina (id, nombre) VALUES (1, 'Prensa')")
+            conexion.execute("INSERT INTO maquinas (id, codigo, tipo_maquina_id) VALUES (1, 'MAQ-1', 1)")
+            for usuario_id, rol in roles.items():
+                conexion.execute(
+                    "INSERT INTO usuarios (id, nombre, apellido, genero, correo, hash_contrasena, verificado)"
+                    " VALUES (?, 'Demo', 'Demo', 'X', ?, 'hash', 0)",
+                    (usuario_id, f"{rol}@example.invalid"),
+                )
+                conexion.execute("INSERT INTO roles (id, nombre) VALUES (?, ?)", (usuario_id, rol))
+                conexion.execute(
+                    "INSERT INTO usuarios_x_roles (usuario_id, rol_id) VALUES (?, ?)", (usuario_id, usuario_id)
+                )
+
+        nueva = {"maquina_codigo": "MAQ-1", "descripcion": "Pierde aceite.", "turno": "tarde"}
+        alta, consulta = {}, {}
+        for usuario_id, rol in roles.items():
+            token, _ = crear_token_jwt(cfg, usuario_id, roles=[rol])
+            cabecera = {"Authorization": f"Bearer {token}"}
+            alta[rol] = client.post("/api/v0/incidencias", headers=cabecera, json=nueva).status_code
+            consulta[rol] = client.get("/api/v0/incidencias", headers=cabecera).status_code
+
+        assert alta == {
+            "operario_maquina": 201,
+            "empleado_mantenimiento": 403,
+            "encargado_mantenimiento": 403,
+            "gerencia_administracion": 403,
+        }
+        assert set(consulta.values()) == {200}
+
+        # El listado muestra primero la más reciente.
+        token, _ = crear_token_jwt(cfg, 20, roles=["operario_maquina"])
+        operario = {"Authorization": f"Bearer {token}"}
+        ultima = client.post(
+            "/api/v0/incidencias", headers=operario, json={**nueva, "descripcion": "La última."}
+        ).json()
+        listado = client.get("/api/v0/incidencias", headers=operario).json()
+        assert listado["items"][0]["id"] == ultima["id"]
