@@ -48,8 +48,13 @@
 .nav {
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 1rem;
     margin-left: auto;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
 }
 
 .nav-link {
@@ -57,7 +62,7 @@
     text-decoration: none;
     font-size: 1rem;
     font-weight: 500;
-    padding: 0 0.55rem;
+    padding: 0 0.7rem;
     white-space: nowrap;
 }
 
@@ -70,6 +75,11 @@
     align-items: center;
     gap: 0.5rem;
     white-space: nowrap;
+}
+
+.session-user {
+    font-size: 0.8rem;
+    color: var(--ui-text-muted);
 }
 
 .nav-link:hover {
@@ -110,10 +120,25 @@
         margin: 0;
         padding-top: 0.75rem;
         border-top: 1px solid var(--ui-border);
+        max-height: calc(100dvh - 4rem);
+        overflow-y: auto;
     }
 
     .nav.nav-open {
         display: flex;
+    }
+
+    .nav-links {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .session-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--ui-border);
     }
 
     .nav-link {
