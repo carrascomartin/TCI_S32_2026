@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | Reportar incidencia (T16) | Alta | — | — | — |
 | Registrar uso de repuesto (T17, CUN-01) | — | Alta | — | — |
-| Consulta de incidencias (T13) | — | Lectura | Lectura | Lectura |
+| Consulta de incidencias (T13) | Lectura | Lectura | Lectura | Lectura |
 | Consulta de repuestos / stock (T12) | — | Lectura | Lectura | Lectura |
 | Reposición de repuestos (T14) | — | Lectura | Lectura | Lectura |
 | Generar pedido de compra (T15) | — | Alta (reporta faltante) | Lectura/gestión | Lectura |
@@ -39,6 +39,15 @@ El backend verifica estos roles en cada solicitud, leyéndolos de la base (no de
 | Crear ubicaciones (`POST /ubicaciones`) | — | Sí | Sí | — |
 
 El empleado mantiene el catálogo porque es quien ingresa repuestos al almacén; el encargado, porque carga el stock recibido y su ubicación (RN-08). Gerencia solo consulta y el operario no accede al almacén.
+
+## Permisos de la API de incidencias (T29)
+
+Acordado con el equipo el 19/11: solo el operario reporta; todos los roles consultan, el operario incluido, para seguir sus reportes. El frontend muestra "Reportar incidencia" solo al operario.
+
+| Operación | Operario | Empleado de mantenimiento | Encargado | Gerencia/Administración |
+| --- | --- | --- | --- | --- |
+| Reportar una incidencia (`POST /incidencias`) | Sí | — | — | — |
+| Listar y consultar incidencias (`GET /incidencias`, `/incidencias/{id}`) | Sí | Sí | Sí | Sí |
 
 ## Permisos de la API de reservas (RN-05 y RN-10)
 
