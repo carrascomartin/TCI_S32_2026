@@ -3,12 +3,21 @@
 import sqlite3
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app import create_app
 from autenticacion_jwt import crear_token_jwt
 from autorizacion_roles import obtener_usuario_actual
 from utils import load_config, update_config
+
+
+@pytest.fixture(autouse=True)
+def aislar_configuracion():
+    """Restablece la configuración global antes y después de cada prueba."""
+    load_config(reload=True)
+    yield
+    load_config(reload=True)
 
 
 def con_rol(app, rol: str) -> None:
