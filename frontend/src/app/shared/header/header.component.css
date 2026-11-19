@@ -135,10 +135,15 @@
     }
 
     .session-actions {
+        order: -1;
         width: 100%;
         flex-wrap: wrap;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--ui-border);
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--ui-border);
+    }
+
+    .logout-button {
+        margin-left: auto;
     }
 
     .nav-link {
