@@ -1,3 +1,4 @@
+
 # Actores del dominio
 
 > T08. Formaliza los actores ya descriptos en `docs/dominio/dominio.md` (sección 3), agregando permisos y la relación con las pantallas construidas hasta ahora.
@@ -81,13 +82,13 @@ Solo el encargado libera una reserva (RN-05) y queda registrado como quien la au
 | --- | --- | --- | --- | --- |
 | Listar pedidos de compra | — | — | Sí | Sí |
 | Consultar detalle de un pedido | — | — | Sí | Sí |
-| Crear pedidos de compra | — | Sí | Según permisos del caso de uso | — |
+| Crear pedidos de compra | — | Sí | Sí | — |
 | Asignar responsable | — | — | Sí | — |
 | Revisar pedidos | — | — | Sí | — |
 | Aprobar pedidos | — | — | Sí | — |
 | Cancelar pedidos | — | — | Sí | — |
 
-El encargado de mantenimiento es el único rol que puede asignar responsables, revisar, aprobar y cancelar pedidos de compra. Gerencia/Administración tiene permisos exclusivamente de consulta. El operario no tiene acceso al módulo. El empleado de mantenimiento puede generar pedidos para informar faltantes, pero no puede consultar ni gestionar los pedidos existentes.
+El encargado de mantenimiento puede crear pedidos de compra y es el único rol que puede asignar responsables, revisar, aprobar y cancelar pedidos. Gerencia/Administración tiene permisos exclusivamente de consulta. El operario no tiene acceso al módulo. El empleado de mantenimiento también puede generar pedidos para informar faltantes, pero no puede consultar ni gestionar los pedidos existentes.
 
 Las operaciones de gestión requieren autenticación y autorización. Sin token, la API responde `401`; si el usuario autenticado no tiene permisos suficientes, responde `403`.
 

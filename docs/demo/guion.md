@@ -259,3 +259,30 @@ No: corren contra SQLite. La aplicación corre en PostgreSQL, y las reservas y l
 **"¿Por qué no hay migraciones con Alembic?"**
 
 El esquema se crea al iniciar con `create_all`. Alembic es lo primero que habría que agregar antes de producción, y así está escrito en el ADR.
+
+## Pedidos de compra (CUN-03)
+
+### Preparación
+
+- Levantar el entorno con `docker compose up -d`.
+- Contar con pedidos de compra en estado `pendiente_aprobacion`. Si solamente hay uno, revisar otro pedido para llevarlo a ese estado.
+- Disponer de usuarios habilitados para los roles encargado de mantenimiento y gerencia.
+
+### Demostración
+
+1. Iniciar sesión como **encargado de mantenimiento**.
+2. Consultar los pedidos mediante los endpoints del backend (la pantalla del frontend todavía no está habilitada).
+3. Seleccionar un pedido en estado `pendiente_aprobacion` y aprobarlo.
+4. Verificar que su estado cambie a `confirmado`.
+5. Si no hay otro pedido pendiente, revisar un segundo pedido para llevarlo a ese estado.
+6. Seleccionar ese pedido y cancelarlo indicando un motivo.
+7. Verificar que su estado cambie a `cancelado` y que el motivo quede registrado.
+8. Cerrar sesión e iniciar como **gerencia**.
+9. Consultar los pedidos y comprobar que puede visualizar la información, pero no aprobarlos ni cancelarlos.
+
+### Resultado esperado
+
+- El encargado de mantenimiento puede aprobar y cancelar pedidos pendientes de aprobación.
+- La aprobación cambia el estado a `confirmado`.
+- La cancelación requiere un motivo y cambia el estado a `cancelado`.
+- Gerencia puede consultar los pedidos, pero no modificarlos.
