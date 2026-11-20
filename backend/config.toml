@@ -50,40 +50,7 @@
         SCOPES = ["openid", "email", "profile"]
         USE_PKCE = true
 
-    # Header-based authentication: Authorization: Bearer <access-token>
-    # Keep this disabled until the realm and API client are configured.
-    [auth.KEYCLOAK]
-        ENABLED = false
-        URL = "http://localhost:8080"
-        REALM = "master"
-        CLIENT_ID = "api"
-        CLIENT_SECRET = ""
-        VERIFY = true
-        AUTHENTICATION_SCHEME = "Bearer"
-        VALIDATE_TOKEN = true
-        REJECT_ON_MISSING_CLAIM = false
-        CLAIMS = [
-            "sub",
-            "name",
-            "family_name",
-            "given_name",
-            "preferred_username",
-            "email",
-            "email_verified",
-            "iss",
-            "aud",
-            "azp",
-            "realm_access",
-            "resource_access",
-            "groups",
-            "scope",
-            "permissions",
-        ]
-        EXCLUDE_PATTERNS = ["^/$", "^/health$", "^/docs$", "^/openapi.json$", "^/redoc$"]
-        ADD_SWAGGER_AUTH = false
-        SWAGGER_CLIENT_ID = ""
-
-    # JWT local y roles guardados en la base de datos. No habilitar junto con Keycloak.
+    # JWT local y roles guardados en la base de datos.
     [auth.JWT]
         # Desactivado por defecto. Se activa sin tocar este archivo con
         # AUTOCONFIG_AUTH__JWT__HABILITADO=true (docker-compose.yml ya lo hace). Si lo definís
