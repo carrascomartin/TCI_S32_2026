@@ -14,13 +14,8 @@ def create_app(app_name: str = "app", description: str = "---", cfg: Config = No
     from contextlib import asynccontextmanager
     from fastapi.middleware.cors import CORSMiddleware
     from starlette.middleware.sessions import SessionMiddleware
-    from fastapi_keycloak_middleware import (
-        KeycloakConfiguration,
-        setup_keycloak_middleware,
-    )
-    from routers import auth_router, autenticacion_router, routers
+    from routers import autenticacion_router, routers
     from services import get_auth_service, get_db_service
-    from auth_utils import map_keycloak_user
     from db.database import dispose_db, init_db
     from autenticacion_middleware import (
         AutenticacionJWTMiddleware,
@@ -63,8 +58,6 @@ def create_app(app_name: str = "app", description: str = "---", cfg: Config = No
     def _load_routers(app: FastAPI, restrict_modules: list[str] = []) -> int:
         active = 0
         for router in routers:
-            if router is auth_router and cfg.auth.JWT.HABILITADO:
-                continue
             if router is autenticacion_router and not cfg.auth.JWT.HABILITADO:
                 continue
             if router.prefix.strip("/") in restrict_modules:
@@ -99,36 +92,12 @@ def create_app(app_name: str = "app", description: str = "---", cfg: Config = No
     _load_routers(app, cfg.server.RESTRICTED_MODULES)
 
     auth_cfg = get_config().auth
-    keycloak_cfg = auth_cfg.KEYCLOAK
     jwt_cfg = auth_cfg.JWT
-    if auth_cfg.ENABLED and jwt_cfg.HABILITADO and keycloak_cfg.ENABLED:
-        raise ValueError("No se pueden habilitar simultáneamente JWT local y Keycloak.")
     if jwt_cfg.HABILITADO:
         validar_configuracion_jwt(get_config())
         app.add_middleware(AutenticacionJWTMiddleware, configuracion=get_config())
-    elif auth_cfg.ENABLED and keycloak_cfg.ENABLED:
-        keycloak_configuration = KeycloakConfiguration(
-            url=keycloak_cfg.URL,
-            realm=keycloak_cfg.REALM,
-            client_id=keycloak_cfg.CLIENT_ID,
-            client_secret=keycloak_cfg.CLIENT_SECRET,
-            verify=keycloak_cfg.VERIFY,
-            authentication_scheme=keycloak_cfg.AUTHENTICATION_SCHEME,
-            validate_token=keycloak_cfg.VALIDATE_TOKEN,
-            claims=keycloak_cfg.CLAIMS,
-            reject_on_missing_claim=keycloak_cfg.REJECT_ON_MISSING_CLAIM,
-            swagger_client_id=keycloak_cfg.SWAGGER_CLIENT_ID or None,
-        )
-        setup_keycloak_middleware(
-            app,
-            keycloak_configuration=keycloak_configuration,
-            user_mapper=map_keycloak_user,
-            exclude_patterns=keycloak_cfg.EXCLUDE_PATTERNS,
-            add_swagger_auth=keycloak_cfg.ADD_SWAGGER_AUTH,
-        )
 
-    # CORS must be added after authentication so it handles OPTIONS preflight
-    # requests before the Keycloak middleware looks for a Bearer token.
+    # CORS debe procesar las solicitudes preflight antes de la autenticación.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_build_cors_origins(get_config().server.CORS_URLS),
@@ -137,9 +106,8 @@ def create_app(app_name: str = "app", description: str = "---", cfg: Config = No
         allow_headers=["*"],
     )
 
-    # Keep the generic session-based OAuth flow available for legacy projects,
-    # but do not combine it with the header-based Keycloak flow.
-    if auth_cfg.ENABLED and auth_cfg.OAUTH.ENABLED and not keycloak_cfg.ENABLED:
+    # Flujo OAuth genérico basado en sesiones.
+    if auth_cfg.ENABLED and auth_cfg.OAUTH.ENABLED:
         app.add_middleware(
             SessionMiddleware,
             secret_key=get_config().secrets.SECRET_KEY,
@@ -251,10 +219,6 @@ def _print_startup_table(cfg: Config) -> None:
     table.add_row(
         "OAuth",
         f_enabled(get_config().auth.OAUTH.ENABLED),
-    )
-    table.add_row(
-        "Keycloak",
-        f_enabled(get_config().auth.KEYCLOAK.ENABLED),
     )
 
     console.print(table)
