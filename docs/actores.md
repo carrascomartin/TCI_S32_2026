@@ -49,6 +49,17 @@ Acordado con el equipo el 19/11: solo el operario reporta; todos los roles consu
 | Reportar una incidencia (`POST /incidencias`) | Sí | — | — | — |
 | Listar y consultar incidencias (`GET /incidencias`, `/incidencias/{id}`) | Sí | Sí | Sí | Sí |
 
+## Permisos de la API de reparaciones (CUN-01)
+
+El empleado de mantenimiento es quien repara: toma la incidencia, registra los repuestos usados (RN-01) y la resuelve con el informe. Encargado y gerencia consultan; el operario sigue el estado de su incidencia, pero no ve la reparación.
+
+| Operación | Operario | Empleado de mantenimiento | Encargado | Gerencia/Administración |
+| --- | --- | --- | --- | --- |
+| Tomar una incidencia (`POST /incidencias/{id}/reparacion`) | — | Sí | — | — |
+| Registrar un repuesto usado (`POST /reparaciones/{id}/usos`) | — | Sí | — | — |
+| Finalizar con el informe (`POST /reparaciones/{id}/informe`) | — | Sí | — | — |
+| Consultar una reparación (`GET /reparaciones/{id}`) | — | Sí | Sí | Sí |
+
 ## Permisos de la API de reservas (RN-05 y RN-10)
 
 | Operación | Operario | Empleado de mantenimiento | Encargado | Gerencia/Administración |

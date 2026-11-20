@@ -1,6 +1,6 @@
 # Guion de la demo (M6)
 
-Duración estimada: 12 minutos. Cada paso dice qué hacer, qué se tiene que ver y qué decir. Los números (cantidades, stock) corresponden a los datos recién cargados con `crear-dummy-db`.
+Duración estimada: 15 minutos. Cada paso dice qué hacer, qué se tiene que ver y qué decir. Los números (cantidades, stock) corresponden a los datos recién cargados con `crear-dummy-db`.
 
 ## Antes de presentar
 
@@ -34,13 +34,14 @@ Cada rol ve en el menú solo lo que puede usar, y todo lo que aparece funciona c
 | Rol | Menú |
 | --- | --- |
 | Operario | Inicio, Reportar incidencia, Incidencias |
-| Empleado, encargado y gerencia | Inicio, Incidencias, Máquinas, Repuestos, Ubicaciones, Reposición, Compras |
+| Empleado | Inicio, Incidencias, Registrar uso, Máquinas, Repuestos, Ubicaciones, Reposición, Compras |
+| Encargado y gerencia | Inicio, Incidencias, Máquinas, Repuestos, Ubicaciones, Reposición, Compras |
 
-Pedidos de compra y registrar uso no están en el menú porque su backend todavía no existe. Si alguien escribe esas direcciones a mano, ve "Pantalla en desarrollo".
+Pedidos de compra no está en el menú porque su backend todavía no existe (#89). Si alguien escribe esa dirección a mano, ve "Pantalla en desarrollo".
 
 ## 1. Presentación (30 segundos)
 
-> "Es el sistema de stock y mantenimiento de la planta: Angular 21 en el front, FastAPI en el back y PostgreSQL como base, todo levantado con `docker compose`. Vamos a mostrar el caso de uso del operario, el catálogo y el stock por ubicación, las reservas con sus reglas de negocio y cómo se controlan los permisos por rol."
+> "Es el sistema de stock y mantenimiento de la planta: Angular 21 en el front, FastAPI en el back y PostgreSQL como base, todo levantado con `docker compose`. Vamos a mostrar el ciclo completo de una incidencia, desde que el operario la reporta hasta que el empleado la resuelve registrando los repuestos que usó (CUN-01), el stock por ubicación, las reservas con sus reglas de negocio y cómo se controlan los permisos por rol."
 
 ## 2. El operario reporta una incidencia (2 minutos)
 
@@ -55,12 +56,26 @@ Pedidos de compra y registrar uso no están en el menú porque su backend todav�
 
 > "El operario reporta desde la planta, con el QR de la máquina y fotos opcionales. La incidencia queda a nombre de quien inició sesión y en estado reportada. El operario también puede consultar las incidencias para seguir sus reportes."
 
-## 3. El resto consulta las incidencias (1 minuto)
+## 3. El empleado resuelve la incidencia: CUN-01 (3 minutos)
 
-1. Cerrar sesión y entrar con `empleado@test`. En **Inicio**, la incidencia recién reportada aparece en "Incidencias recientes", y al lado está "Repuestos por reponer".
-2. El menú tiene **Incidencias** pero no **Reportar incidencia**. Si se escribe a mano `http://localhost:8080/incidencias/nueva`, vuelve a Inicio.
+1. Cerrar sesión y entrar con `empleado@test`. En **Inicio**, la incidencia recién reportada aparece en "Incidencias recientes". El menú tiene **Registrar uso** pero no **Reportar incidencia** (si se escribe a mano `http://localhost:8080/incidencias/nueva`, vuelve a Inicio).
+2. Ir a **Incidencias**, abrir la recién reportada (**Ver detalle**) y tocar **Tomar incidencia**. Aparece el aviso **"Incidencia tomada"** y se abre **Registrar uso** con el número de reparación ya cargado.
 
-> "Solo el operario reporta: así lo acordamos y así lo valida el backend. Los demás roles consultan."
+> "El empleado toma la incidencia: se crea la reparación a su nombre y la incidencia pasa a En reparación. Es la precondición del CUN-01."
+
+3. En **Código del repuesto** escribir `REP-00106` y tocar **Buscar**: muestra *Sensor de temperatura PT100, disponible 5, mínimo 3*.
+4. Cantidad `2` → **Registrar uso**. Aparecen **"Uso registrado"** y **"Alerta de stock mínimo"**, y el disponible pasa a **3**.
+
+> "Registrar el uso descuenta del stock físico (RN-01), deja el movimiento de consumo para la trazabilidad y, como quedó bajo el mínimo, el repuesto entra en las alertas (RN-02)."
+
+5. Cantidad `5` → **Registrar uso**. Aparece el error *"No hay stock disponible suficiente de REP-00106: se piden 5 y hay 3 disponibles"*. El stock no cambia.
+
+> "Si no alcanza, se rechaza sin tocar nada. Quedan 5 sensores en el estante, pero 2 están reservados para un mantenimiento planificado, así que solo hay 3 disponibles: lo reservado no se puede usar (RN-05). Y como el control lo hace la base en una sola sentencia, dos empleados no pueden llevarse la última unidad a la vez: está en el ADR de concurrencia."
+
+6. Tocar **← Volver a la incidencia**: la sección **Reparación** muestra el repuesto usado. En **Finalizar reparación** escribir `Se reemplazaron los dos sensores de temperatura.` y tocar **Finalizar y resolver**. Aparece **"Incidencia resuelta"**: el estado pasa a **Resuelta**, la reparación a **Completada** y queda el informe.
+7. Para cerrar el recorrido, entrar con `encargado@test` y abrir la misma incidencia: ve la reparación y el informe, sin botones. Con `operario@test` ve su incidencia **Resuelta**.
+
+> "Ese es el ciclo completo: el operario reporta, el empleado toma, registra los repuestos y resuelve, y todos ven el resultado según su rol."
 
 ## 4. Catálogo de máquinas (1 minuto)
 
@@ -192,20 +207,23 @@ No intentar ejecutar desde el Swagger las rutas protegidas: no tiene botón para
    cd backend && uv run pytest tests/test_reservas.py -v
    ```
 
-   Se ven los 7 tests en verde, con la regla en el nombre (`test_rn05_...`, `test_rn10_...`). La suite completa del backend corre con `uv run pytest -q`.
+   Se ven los 7 tests en verde, con la regla en el nombre (`test_rn05_...`, `test_rn10_...`). Los del CUN-01 están en `tests/test_reparaciones.py` (`test_rn01_...`). La suite completa del backend corre con `uv run pytest -q`.
 
 > "Cada uno de estos tests lo comprobamos rompiendo a propósito lo que protege: si se saca el rollback o el control de disponible, el test falla."
 
 ## Preguntas probables
 
-**"¿Y los pedidos de compra y el registro de uso?"**
-Las pantallas están hechas, pero su backend todavía no: el router de pedidos de compra (#89) y el registro de uso de repuestos (RN-01) están pendientes. Para la demo mostramos solo lo que funciona de punta a punta.
+**"¿Y los pedidos de compra?"**
+La pantalla está hecha, pero su backend todavía no: el router de pedidos de compra y la recepción con carga de stock (CUN-02, #89) están pendientes. Para la demo mostramos solo lo que funciona de punta a punta.
+
+**"¿Qué pasa si falta stock para la reparación?"**
+Se rechaza el uso con el faltante. El CUN-01 prevé ofrecer un pedido de compra (RN-03) y dejar la incidencia "Pendiente de repuesto": eso depende de los pedidos de compra y queda pendiente.
 
 **"¿Por qué las reservas no tienen pantalla?"**
 Priorizamos la regla de negocio con sus tests (RN-05 y RN-10), que era lo que faltaba. La pantalla queda pendiente.
 
-**"¿Qué pasa si dos empleados reservan la última unidad a la vez?"**
-La reserva se hace con un `UPDATE ... WHERE disponible >= cantidad` en una sola sentencia: solo una de las dos actualiza la fila y la otra recibe `409`. Además la base tiene restricciones `CHECK`: el stock físico nunca queda negativo y lo reservado nunca supera al físico. Para el descuento por uso (RN-01) la decisión de concurrencia sigue pendiente de un ADR.
+**"¿Qué pasa si dos empleados usan o reservan la última unidad a la vez?"**
+El descuento y la reserva se hacen con un `UPDATE ... WHERE disponible >= cantidad` en una sola sentencia: solo una de las dos actualiza la fila y la otra recibe `409`. Además la base tiene restricciones `CHECK`: el stock físico nunca queda negativo y lo reservado nunca supera al físico. La decisión está en `docs/M6-adr-concurrencia-rn01.md`.
 
 **"¿Los tests corren contra PostgreSQL?"**
 No: corren contra SQLite. La aplicación corre en PostgreSQL, y las reservas y las incidencias se probaron a mano contra PostgreSQL. Pasar la suite a PostgreSQL implica reescribir los tests que usan `sqlite3` directo, y está anotado como pendiente en el ADR.
