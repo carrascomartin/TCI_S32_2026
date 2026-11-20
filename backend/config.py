@@ -76,7 +76,7 @@ class AuthOAuth(ConfigurationSection):
 
 
 class AuthKeycloak(ConfigurationSection):
-    """Bearer-token authentication configuration for Keycloak."""
+    """Configuración histórica aceptada por compatibilidad; no se utiliza."""
 
     ENABLED: bool = config_field(False)
     URL: str = config_field("http://localhost:8080")

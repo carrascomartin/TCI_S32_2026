@@ -115,68 +115,17 @@ python app.py -c dev -p 8080 -H 0.0.0.0 -d
 python app.py --no-logs
 ```
 
-## Keycloak y autorización
+## Keycloak
 
-La plantilla usa el header estándar:
+La integración de Keycloak está deshabilitada en el backend y no se registra su
+middleware ni su endpoint de ejemplo. Los valores históricos de `[auth.KEYCLOAK]`
+se aceptan por compatibilidad, pero se ignoran incluso si `ENABLED = true`.
+La entrega utiliza autenticación JWT local: activar Keycloak en una configuración
+antigua no protege la aplicación ni sustituye al JWT local. Asegurate de habilitar
+y configurar este último para proteger las rutas.
 
-```text
-Authorization: Bearer <access-token>
-```
-
-Activá `[auth.KEYCLOAK].ENABLED` en el archivo de configuración del entorno y
-completá `URL`, `REALM` y `CLIENT_ID`. El middleware valida el token contra la
-clave pública del realm y deja disponible un `KeycloakUser` compatible con
-diccionario:
-
-```python
-from fastapi import Depends
-
-from auth_utils import (
-    KeycloakUser,
-    get_current_user,
-    require_client_role,
-    require_group,
-    require_realm_role,
-    require_role,
-    username_equals,
-)
-
-
-@router.get("/me")
-async def me(user: KeycloakUser = Depends(get_current_user)):
-    return {
-        "id": user.user_id,
-        "username": user.username,
-        "realm": user.realm,
-        "roles": user.roles,
-        "realm_roles": user.realm_roles,
-        "client_roles": user.client_roles,
-        "groups": user.groups,
-    }
-
-
-@router.get(
-    "/admin",
-    dependencies=[Depends(require_client_role("admin"))],
-)
-async def admin_area():
-    return {"status": "allowed"}
-
-
-@router.get(
-    "/team",
-    dependencies=[Depends(require_group("/engineering"))],
-)
-async def engineering_area():
-    return {"status": "allowed"}
-```
-
-También están disponibles `require_realm_role`, `require_role` con
-`source="realm" | "client"`, `require_permission` y `username_equals`. Las
-validaciones devuelven `401` cuando falta o es inválido el token y `403` cuando
-el usuario autenticado no cumple la condición.
-
-La ruta `GET /auth/me` sirve como ejemplo y devuelve el objeto normalizado.
+El código y las dependencias de la integración histórica se conservan por ahora;
+no se ha validado su uso como alternativa activa.
 
 ## JWT local y roles
 
@@ -184,7 +133,6 @@ El backend también puede emitir JWT propios y consultar los roles desde la base
 de datos. Con `docker compose`, ya viene habilitado (usa la `CLAVE_JWT` de `.env`). Sin Docker, definí
 las variables de "Claves y variables de entorno" o copiá `config.toml` a `config.<environment>.toml`,
 configurá una clave secreta distinta por entorno y activá el bloque `[auth.JWT]`.
-No habilites al mismo tiempo el proveedor JWT local y Keycloak.
 
 ```toml
 [secrets]
