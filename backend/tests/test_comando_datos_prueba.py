@@ -11,7 +11,8 @@ import pytest
 
 
 @pytest.mark.parametrize("atajo", [False, True], ids=["script", "atajo"])
-def test_comando_crea_base(tmp_path, atajo):
+@pytest.mark.parametrize("opcion_config", ["--config", "-c"])
+def test_comando_crea_base(tmp_path, atajo, opcion_config):
     backend = Path(__file__).resolve().parents[1]
     entorno = f"prueba_cli_{uuid4().hex}"
     archivo_config = backend / f"config.{entorno}.toml"
@@ -35,7 +36,7 @@ def test_comando_crea_base(tmp_path, atajo):
         )
         comando = [str(ejecutable)] if atajo else [sys.executable, "datos_prueba.py"]
         resultado = subprocess.run(
-            [*comando, "--config", entorno],
+            [*comando, opcion_config, entorno],
             cwd=backend,
             env=variables,
             capture_output=True,

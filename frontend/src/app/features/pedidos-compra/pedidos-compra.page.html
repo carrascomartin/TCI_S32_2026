@@ -64,7 +64,7 @@
               @for (pedido of pedidos(); track pedido.id) {
                 <tr>
                   <td class="font-medium">#{{ pedido.id }}</td>
-                  <td>{{ fecha(pedido.creado_en) }}</td>
+                  <td><time [attr.datetime]="pedido.creado_en">{{ fecha(pedido.creado_en) }}</time></td>
                   <td>{{ origen(pedido.origen) }}</td>
                   <td data-align="center">{{ pedido.items?.length ?? 0 }}</td>
                   <td>

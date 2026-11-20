@@ -84,7 +84,7 @@
               <tr>
 
                 <td>
-                  {{ nombreMaquina(inc) }}
+                  <span class="machine-code text-base">{{ nombreMaquina(inc) }}</span>
                 </td>
 
                 <td>
@@ -92,7 +92,7 @@
                 </td>
 
                 <td>
-                  {{ fecha(inc.reportada_en) }}
+                  <time [attr.datetime]="inc.reportada_en">{{ fecha(inc.reportada_en) }}</time>
                 </td>
 
                 <td>

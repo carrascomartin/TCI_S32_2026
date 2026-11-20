@@ -1,0 +1,33 @@
+.minimum-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+}
+
+.minimum-tooltip {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  width: max-content;
+  max-width: 14rem;
+  padding: 0.5rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font-size: 0.75rem;
+  font-weight: 400;
+  white-space: normal;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  visibility: hidden;
+}
+
+.minimum-info:hover .minimum-tooltip,
+.minimum-info:focus-visible .minimum-tooltip,
+.minimum-info:focus .minimum-tooltip {
+  visibility: visible;
+}

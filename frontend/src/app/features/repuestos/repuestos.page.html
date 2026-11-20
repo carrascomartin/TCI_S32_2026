@@ -66,31 +66,37 @@
                 </span>
                 <div class="min-w-0 flex-1">
                   <p class="truncate text-sm font-medium">{{ r.nombre }}</p>
-                  <p class="numeric text-xs text-muted-foreground">{{ r.codigo }}</p>
+                  <p class="numeric text-sm font-semibold text-muted-foreground">{{ r.codigo }}</p>
                 </div>
                 <span hlmBadge [variant]="info(r).variante">{{ info(r).etiqueta }}</span>
               </a>
               <dl class="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <dt class="text-xs text-muted-foreground">{{ config.columnas.fisico }}</dt>
-                  <dd class="numeric text-sm font-semibold">{{ cifra(r.stock_fisico_total) }}</dd>
+                  <dd class="numeric text-lg font-semibold">{{ cifra(r.stock_fisico_total) }}</dd>
                 </div>
                 <div>
                   <dt class="text-xs text-muted-foreground">{{ config.columnas.reservado }}</dt>
-                  <dd class="numeric text-sm">{{ cifra(r.stock_reservado_total) }}</dd>
+                  <dd class="numeric text-lg font-semibold">{{ cifra(r.stock_reservado_total) }}</dd>
                 </div>
                 <div>
                   <dt class="text-xs text-muted-foreground">{{ config.columnas.disponible }}</dt>
-                  <dd class="numeric text-sm font-semibold">{{ cifra(r.stock_disponible_total) }}</dd>
-                  <dd class="numeric text-xs text-muted-foreground">{{ config.minimo }} {{ cifra(r.stock_minimo) }}</dd>
+                  <dd class="numeric text-lg font-semibold">{{ cifra(r.stock_disponible_total) }}</dd>
+                  <dd class="numeric text-sm text-muted-foreground">
+                    {{ config.minimo }} {{ cifra(r.stock_minimo) }}
+                    <button type="button" class="minimum-info" [attr.aria-label]="detalleMinimo(r)">
+                      <app-icon name="alert" class="size-4" />
+                      <span class="minimum-tooltip" aria-hidden="true">{{ detalleMinimo(r) }}</span>
+                    </button>
+                  </dd>
                 </div>
               </dl>
               <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 @for (u of ubicaciones(r); track u) {
                   <span class="numeric rounded border border-border px-1.5 py-0.5">{{ u }}</span>
                 }
-                @if (maquinas(r)) {
-                  <span>{{ maquinas(r) }}</span>
+                @for (maquina of r.maquinas_compatibles ?? []; track maquina.id) {
+                  <span>{{ maquina.tipo_maquina.nombre }} <span class="machine-code text-base">{{ maquina.codigo }}</span></span>
                 }
               </div>
             </li>
@@ -117,12 +123,22 @@
                     <a [routerLink]="['/stock', r.id]" class="font-medium hover:underline">{{ r.nombre }}</a><br />
                     <span class="numeric text-xs text-muted-foreground">{{ r.codigo }}@if (r.descripcion) { · {{ r.descripcion }} }</span>
                   </td>
-                  <td>{{ maquinas(r) || config.sinDato }}</td>
+                  <td>
+                    @for (maquina of r.maquinas_compatibles ?? []; track maquina.id; let ultima = $last) {
+                      {{ maquina.tipo_maquina.nombre }} <span class="machine-code text-base">{{ maquina.codigo }}</span>@if (!ultima) {, }
+                    } @empty {
+                      {{ config.sinDato }}
+                    }
+                  </td>
                   <td data-align="center" class="numeric font-semibold">{{ cifra(r.stock_fisico_total) }}</td>
                   <td data-align="center" class="numeric">{{ cifra(r.stock_reservado_total) }}</td>
                   <td data-align="center">
                     <span class="numeric font-semibold">{{ cifra(r.stock_disponible_total) }}</span><br />
                     <span class="numeric text-xs text-muted-foreground">{{ config.minimo }} {{ cifra(r.stock_minimo) }}</span>
+                    <button type="button" class="minimum-info" [attr.aria-label]="detalleMinimo(r)">
+                      <app-icon name="alert" class="size-4" />
+                      <span class="minimum-tooltip" aria-hidden="true">{{ detalleMinimo(r) }}</span>
+                    </button>
                   </td>
                   <td>
                     <span class="flex flex-wrap gap-1">

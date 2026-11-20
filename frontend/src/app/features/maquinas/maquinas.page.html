@@ -125,7 +125,7 @@
             <li class="rounded-lg border border-border p-4">
               <a [routerLink]="['/maquinas', maquina.id]" class="flex flex-col gap-3">
                 <div class="flex items-center justify-between gap-3">
-                  <span class="font-semibold">{{ maquina.codigo }}</span>
+                  <span class="machine-code text-lg">{{ maquina.codigo }}</span>
                   <span hlmBadge [variant]="estado(maquina.estado).variante">
                     {{ estado(maquina.estado).etiqueta }}
                   </span>
@@ -144,9 +144,17 @@
             <thead>
               <tr>
                 <th scope="col">{{ config.columnas.codigo }}</th>
-                <th scope="col">{{ config.columnas.tipo }}</th>
+                <th scope="col" [attr.aria-sort]="campoOrden() === 'tipo' ? (direccionOrden() === 'asc' ? 'ascending' : 'descending') : null">
+                  <button type="button" class="cursor-pointer hover:underline" (click)="ordenar('tipo')">
+                    {{ config.columnas.tipo }} <span aria-hidden="true">{{ campoOrden() === 'tipo' ? (direccionOrden() === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                  </button>
+                </th>
                 <th scope="col">{{ config.columnas.numeroSerie }}</th>
-                <th scope="col">{{ config.columnas.estado }}</th>
+                <th scope="col" [attr.aria-sort]="campoOrden() === 'estado' ? (direccionOrden() === 'asc' ? 'ascending' : 'descending') : null">
+                  <button type="button" class="cursor-pointer hover:underline" (click)="ordenar('estado')">
+                    {{ config.columnas.estado }} <span aria-hidden="true">{{ campoOrden() === 'estado' ? (direccionOrden() === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                  </button>
+                </th>
                 <th scope="col">{{ config.columnas.instalacion }}</th>
                 <th scope="col">{{ config.columnas.accion }}</th>
               </tr>
@@ -154,7 +162,7 @@
             <tbody>
               @for (maquina of maquinasVisibles(); track maquina.id) {
                 <tr>
-                  <td class="font-medium">{{ maquina.codigo }}</td>
+                  <td><span class="machine-code text-base">{{ maquina.codigo }}</span></td>
                   <td>{{ maquina.tipo_maquina.nombre }}</td>
                   <td>{{ maquina.numero_serie || config.detalle.noInformado }}</td>
                   <td>
@@ -162,7 +170,7 @@
                       {{ estado(maquina.estado).etiqueta }}
                     </span>
                   </td>
-                  <td>{{ fecha(maquina.fecha_instalacion) }}</td>
+                  <td>@if (maquina.fecha_instalacion) { <time [attr.datetime]="maquina.fecha_instalacion">{{ fecha(maquina.fecha_instalacion) }}</time> } @else { {{ config.detalle.noInformado }} }</td>
                   <td>
                     <a hlmBtn size="sm" variant="outline" [routerLink]="['/maquinas', maquina.id]">
                       Ver detalle →
