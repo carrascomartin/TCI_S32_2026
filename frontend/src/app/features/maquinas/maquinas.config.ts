@@ -43,7 +43,7 @@ export const ESTADOS_MAQUINA: Record<
   string,
   { etiqueta: string; variante: BadgeVariants['variant'] }
 > = {
-  operativa: { etiqueta: 'Operativa', variante: 'default' },
+  operativa: { etiqueta: 'Operativa', variante: 'success' },
   detenida: { etiqueta: 'Detenida', variante: 'destructive' },
-  en_mantenimiento: { etiqueta: 'En mantenimiento', variante: 'secondary' },
+  en_mantenimiento: { etiqueta: 'En mantenimiento', variante: 'warning' },
 };

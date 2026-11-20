@@ -183,8 +183,8 @@ export class ComprasPage {
   protected badgeMotivo(r: RepuestoDto) {
     const estado = estadoDe(r);
     if (estado === 'sin_stock') return { etiqueta: this.motivo(r), variante: 'destructive' as const };
-    if (estado === 'bajo_minimo') return { etiqueta: this.motivo(r), variante: 'outline' as const };
-    return { etiqueta: this.motivo(r), variante: 'secondary' as const };
+    if (estado === 'bajo_minimo') return { etiqueta: this.motivo(r), variante: 'warning' as const };
+    return { etiqueta: this.motivo(r), variante: 'success' as const };
   }
 
   /** Columna "Urgencia": solo existen normal y urgente (urgente cuando no hay stock). */

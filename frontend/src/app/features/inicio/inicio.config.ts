@@ -7,7 +7,6 @@ export const INICIO_CONFIG = {
   descripcion: 'Accedé rápidamente a las tareas de mantenimiento de la planta.',
   reportar: 'Reportar incidencia',
   verMaquinas: 'Consultar máquinas',
-  sinAccesoAlmacen: 'Tu rol reporta incidencias sobre las máquinas. Esa función todavía no está disponible en esta versión.',
   reintentar: 'Reintentar',
   demo: 'Datos de demostración: no se guardan en el backend ni se envían notificaciones.',
   incidencias: {

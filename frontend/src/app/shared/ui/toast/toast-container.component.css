@@ -31,9 +31,9 @@ app-toast.toast-leave { animation: toast-disappear 220ms ease-in both; }
 
 @media (max-width: 640px) {
   :host {
-    top: auto;
+    top: max(0.75rem, env(safe-area-inset-top));
     right: 0.75rem;
-    bottom: 0.75rem;
+    bottom: auto;
     width: calc(100vw - 1.5rem);
   }
 }

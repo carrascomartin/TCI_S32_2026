@@ -59,7 +59,6 @@ export const REPUESTOS_CONFIG = {
     nueva: 'Nueva ubicación',
     codigo: 'Código',
     codigoPlaceholder: 'Ej.: A-03-12',
-    codigoAyuda: 'Estante, fila y nivel.',
     descripcionCampo: 'Descripción (opcional)',
     descripcionPlaceholder: 'Ej.: Estante A, fila 3, nivel 12',
     requerido: 'El código es obligatorio.',
@@ -104,6 +103,6 @@ export const FILTROS: { id: FiltroEstado; etiqueta: string }[] = [
 
 export const ESTADOS_STOCK: Record<EstadoStock, { etiqueta: string; variante: BadgeVariants['variant'] }> = {
   sin_stock: { etiqueta: 'Sin stock', variante: 'destructive' },
-  bajo_minimo: { etiqueta: 'Bajo mínimo', variante: 'outline' },
-  normal: { etiqueta: 'Disponible', variante: 'secondary' },
+  bajo_minimo: { etiqueta: 'Bajo mínimo', variante: 'warning' },
+  normal: { etiqueta: 'Disponible', variante: 'success' },
 };

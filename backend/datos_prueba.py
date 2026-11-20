@@ -121,7 +121,7 @@ def cargar(
         False, "--recreate", help="Borra los datos del dominio antes de cargar. No toca usuarios ni roles."
     ),
     sin_confirmar: bool = typer.Option(False, "--si", "-y", help="No pedir confirmación al reiniciar."),
-    configuracion: str = typer.Option("default", "--config", help="Nombre del entorno, por ejemplo dev para config.dev.toml."),
+    configuracion: str = typer.Option("default", "--config", "-c", help="Nombre del entorno, por ejemplo dev para config.dev.toml."),
 ) -> None:
     """Carga máquinas, stock, incidencias, reparaciones, compras y reservas de prueba."""
 

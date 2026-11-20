@@ -1,0 +1,32 @@
+.repuestos-card {
+  container-type: inline-size;
+}
+
+.repuestos-tabla {
+  display: none;
+}
+
+.repuestos-acciones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.repuestos-accion {
+  min-width: 0;
+  min-height: 2.25rem;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}
+
+@container (min-width: 32rem) {
+  .repuestos-lista {
+    display: none;
+  }
+
+  .repuestos-tabla {
+    display: block;
+  }
+
+}

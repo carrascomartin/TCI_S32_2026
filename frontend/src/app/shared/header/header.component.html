@@ -10,6 +10,7 @@
           class="menu-toggle"
           type="button"
           [attr.aria-expanded]="isMenuOpen()"
+          aria-controls="navegacion-principal"
           aria-label="Abrir o cerrar navegación"
           (click)="toggleMenu()"
         >
@@ -18,17 +19,18 @@
           <span></span>
         </button>
 
-        <nav class="nav" aria-label="Navegación del catálogo" [class.nav-open]="isMenuOpen()">
+        <nav id="navegacion-principal" class="nav" aria-label="Navegación del catálogo" [class.nav-open]="isMenuOpen()">
+          <div class="nav-links">
           @for (item of navegacion(); track item.label) {
             <a class="nav-link" [routerLink]="item.href" (click)="closeMenu()">
               {{ item.label }}
             </a>
           }
-        </nav>
+          </div>
 
-        <div class="session-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="session-actions">
           @if (usuario()) {
-            <span style="font-size: 0.8rem; color: var(--ui-text-muted);">
+            <span class="session-user">
               {{ nombreMostrar() }}
             </span>
           }
@@ -37,10 +39,11 @@
             <span hlmBadge variant="outline">Demo</span>
           }
 
-          <button hlmBtn variant="outline" size="sm" type="button" (click)="cerrarSesion()">
+          <button hlmBtn variant="outline" size="sm" class="logout-button" type="button" (click)="cerrarSesion()">
             Cerrar sesión
           </button>
-        </div>
+          </div>
+        </nav>
       }
     </div>
   </header>

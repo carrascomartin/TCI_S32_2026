@@ -34,8 +34,6 @@ def validar_configuracion_jwt(configuracion: Config) -> None:
         return
     if not configuracion.auth.ENABLED:
         raise ValueError("JWT local requiere auth.ENABLED = true.")
-    if configuracion.auth.KEYCLOAK.ENABLED:
-        raise ValueError("JWT local y Keycloak no pueden estar habilitados a la vez.")
     if jwt_cfg.DURACION_TOKEN_MINUTOS <= 0:
         raise ValueError("auth.JWT.DURACION_TOKEN_MINUTOS debe ser mayor que cero.")
     if not jwt_cfg.ALGORITMOS_PERMITIDOS:

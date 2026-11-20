@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Sequence
 from sqlmodel import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.db_models.incidencias import IncidenciaDb, FotoIncidenciaDb
+from db.db_models.incidencias import IncidenciaDb, FotoIncidenciaDb, ReparacionDb
 from db.db_models.catalogo import MaquinaDb, TipoMaquinaDb
 
 
@@ -68,6 +68,12 @@ class RepositorioIncidencias:
         await self.sesion.refresh(incidencia)
         return incidencia
 
+    async def obtener_reparacion_id(self, incidencia_id: int) -> Optional[int]:
+        """Id de la reparación de la incidencia, si un empleado ya la tomó."""
+        return await self.sesion.scalar(
+            select(ReparacionDb.id).where(ReparacionDb.incidencia_id == incidencia_id)
+        )
+
     async def listar(
         self, offset: int, limit: int, estado: Optional[str]
     ) -> Tuple[Sequence[IncidenciaDb], int]:
@@ -83,7 +89,8 @@ class RepositorioIncidencias:
         total_result = await self.sesion.execute(count_query)
         total = total_result.scalar_one()
 
-        query = query.offset(offset).limit(limit)
+        # Las más recientes primero, para que la paginación sea estable.
+        query = query.order_by(IncidenciaDb.reportada_en.desc(), IncidenciaDb.id.desc()).offset(offset).limit(limit)
         resultado = await self.sesion.execute(query)
         items = resultado.scalars().all()
 

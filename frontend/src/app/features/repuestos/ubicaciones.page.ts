@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,6 +8,7 @@ import { HlmButtonImports } from '@shared/ui/button';
 import { HlmCardImports } from '@shared/ui/card';
 import { HlmInputImports } from '@shared/ui/input';
 import { HlmLabelImports } from '@shared/ui/label';
+import { IconComponent } from '@shared/ui/icon';
 import { DataTableComponent } from '@shared/ui/table';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '../../core/auth/session.service';
@@ -28,6 +30,7 @@ type Carga = 'cargando' | 'listo' | 'error';
     HlmCardImports,
     HlmInputImports,
     HlmLabelImports,
+    IconComponent,
     DataTableComponent,
   ],
   templateUrl: './ubicaciones.page.html',
@@ -37,6 +40,7 @@ export class UbicacionesPage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(ToastService);
   private readonly sesion = inject(SessionService);
+  private readonly clipboard = inject(Clipboard);
 
   protected readonly config = REPUESTOS_CONFIG.ubicaciones;
   protected readonly demo = REPUESTOS_CONFIG.demo;
@@ -77,6 +81,19 @@ export class UbicacionesPage {
   protected codigoInvalido(): boolean {
     const control = this.form.controls.codigo;
     return control.invalid && (control.touched || control.dirty);
+  }
+
+  protected descripcionCorta(descripcion: string | null | undefined): string {
+    const caracteres = Array.from(descripcion ?? '');
+    return caracteres.length > 50 ? `${caracteres.slice(0, 50).join('')}…` : caracteres.join('');
+  }
+
+  protected copiarCodigo(codigo: string): void {
+    const copiado = this.clipboard.copy(codigo);
+    this.toast.show({
+      variant: copiado ? 'success' : 'error',
+      message: copiado ? 'Código copiado.' : 'No se pudo copiar el código.',
+    });
   }
 
   protected crear(): void {
