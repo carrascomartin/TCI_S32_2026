@@ -10,6 +10,7 @@ Registro de cambios relevantes del proyecto. Formato basado en [Keep a Changelog
 
 ### Changed
 
+- El CU "Cargar stock recibido con ubicación" (`docs/caso-de-uso-recepcion-compra.md`) pasa de CUN-02 a **CUN-03**: el número CUN-02 ya lo usaba "Registrar un repuesto" (`docs/negocio/casos-de-uso/cun-02-registrar-repuesto.md`).
 - `docker compose up` requiere un `.env` con `SECRET_KEY` y `CLAVE_JWT` (copiar `.env.example`). El compose activa el JWT local con `AUTOCONFIG_AUTH__JWT__HABILITADO=true`; `config.toml` ya no define `HABILITADO` (el valor por defecto sigue siendo `false`) porque el archivo gana sobre la variable.
 
 ### Fixed
@@ -18,6 +19,7 @@ Registro de cambios relevantes del proyecto. Formato basado en [Keep a Changelog
 
 ### Added
 
+- CUN-01 de punta a punta (issue #112): el empleado toma una incidencia reportada o en triage (`POST /api/v0/incidencias/{id}/reparacion`, nueva operación del contrato v0), registra los repuestos usados (`POST /api/v0/reparaciones/{id}/usos`, RN-01) y la resuelve con el informe (`POST /api/v0/reparaciones/{id}/informe`); `GET /api/v0/reparaciones/{id}` devuelve usos e informe, y el detalle de la incidencia suma `reparacion_id`. El uso valida contra el disponible (no usa lo reservado), descuenta con una sentencia condicionada (`docs/M6-adr-concurrencia-rn01.md`) y deja un movimiento `consumo`. En el front: tomar, registrar uso (pantalla de T17 conectada) y finalizar desde el detalle de la incidencia, solo para el empleado. Tests de RN-01 y del flujo, verificados rompiendo cada regla; recorrido completo probado en el navegador contra PostgreSQL.
 - `docs/demo/levantar.md` (levantar el sistema, cargar los datos de prueba, usuarios por rol, acceso a la base, tests y problemas comunes) y `docs/demo/guion.md` (guion de la demo con el reporte de incidencias del operario, catálogo, stock, reservas y permisos), enlazados desde el README. Recorridos desde un clon limpio del repositorio.
 - Incidencias visibles en el frontend según el rol acordado: solo el operario ve y usa "Reportar incidencia"; todos los roles ven "Incidencias" (listado y detalle) y la tarjeta "Incidencias recientes" en inicio. El backend deja reportar solo al operario (antes también al encargado) y el listado devuelve primero las más recientes. Tests de la matriz de permisos y del orden. Verificado en el navegador con operario, empleado y gerencia contra el backend real.
 - Frontend: el menú muestra a cada rol solo los módulos que el backend le permite (`docs/actores.md`) y un guard por rol devuelve a inicio a quien escribe a mano una ruta sin permiso; gerencia no entra a crear ni editar repuestos. Se ocultan del menú y de las rutas las pantallas cuyo backend todavía no existe (incidencias, registrar uso, pedidos de compra y la vista de componentes); "Repuestos por reponer" en inicio se calcula con los repuestos reales hasta que exista `/stock/alertas`, y se quita "Generar orden de compra", que no guardaba nada. Verificado en el navegador con los 4 roles.
